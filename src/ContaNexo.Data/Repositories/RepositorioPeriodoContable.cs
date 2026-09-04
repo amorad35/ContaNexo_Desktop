@@ -62,4 +62,29 @@ public class RepositorioPeriodoContable
                 excepcion);
         }
     }
+
+    public async Task<PeriodoContable> CrearAsync(PeriodoContable periodo)
+    {
+        var parametros = new DynamicParameters();
+        parametros.Add("@idEmpresa", periodo.IdEmpresa);
+        parametros.Add("@nombrePeriodo", periodo.NombrePeriodo);
+        parametros.Add("@fechaInicioPeriodo", periodo.FechaInicioPeriodo);
+        parametros.Add("@fechaFinPeriodo", periodo.FechaFinPeriodo);
+
+        try
+        {
+            await using SqlConnection conexion = _conexionBD.CrearConexion();
+
+            return await conexion.QuerySingleAsync<PeriodoContable>(
+                "SP_PeriodoContable_Crear",
+                parametros,
+                commandType: CommandType.StoredProcedure);
+        }
+        catch (SqlException excepcion)
+        {
+            throw new InvalidOperationException(
+                "No se pudo crear el período contable.",
+                excepcion);
+        }
+    }
 }
