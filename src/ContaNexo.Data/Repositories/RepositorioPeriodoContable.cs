@@ -1,0 +1,42 @@
+using System.Data;
+using ContaNexo.Core.Models;
+using ContaNexo.Data.Connections;
+using Dapper;
+using Microsoft.Data.SqlClient;
+
+namespace ContaNexo.Data.Repositories;
+
+public class RepositorioPeriodoContable
+{
+    private readonly ConexionBD _conexionBD;
+
+    public RepositorioPeriodoContable(ConexionBD conexionBD)
+    {
+        _conexionBD = conexionBD;
+    }
+
+    public async Task<IEnumerable<PeriodoContableListado>> ListarAsync(
+        int? idEmpresa = null,
+        string? estadoPeriodo = null)
+    {
+        var parametros = new DynamicParameters();
+        parametros.Add("@idEmpresa", idEmpresa);
+        parametros.Add("@estadoPeriodo", estadoPeriodo);
+
+        try
+        {
+            await using SqlConnection conexion = _conexionBD.CrearConexion();
+
+            return await conexion.QueryAsync<PeriodoContableListado>(
+                "SP_PeriodoContable_Listar",
+                parametros,
+                commandType: CommandType.StoredProcedure);
+        }
+        catch (SqlException excepcion)
+        {
+            throw new InvalidOperationException(
+                "No se pudieron obtener los períodos contables.",
+                excepcion);
+        }
+    }
+}
