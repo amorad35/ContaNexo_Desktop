@@ -15,4 +15,19 @@ public class ConexionBD
     {
         return new SqlConnection(_cadenaConexion);
     }
+
+    public async Task<bool> ProbarConexionAsync()
+    {
+        try
+        {
+            await using SqlConnection conexion = CrearConexion();
+            await conexion.OpenAsync();
+
+            return true;
+        }
+        catch (SqlException)
+        {
+            return false;
+        }
+    }
 }
