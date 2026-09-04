@@ -39,4 +39,27 @@ public class RepositorioPeriodoContable
                 excepcion);
         }
     }
+
+    public async Task<PeriodoContableDetalle?> ObtenerPorIdAsync(int idPeriodoContable)
+    {
+        try
+        {
+            await using SqlConnection conexion = _conexionBD.CrearConexion();
+
+            return await conexion.QuerySingleOrDefaultAsync<PeriodoContableDetalle>(
+                "SP_PeriodoContable_ObtenerPorId",
+                new { idPeriodoContable },
+                commandType: CommandType.StoredProcedure);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 53101)
+        {
+            return null;
+        }
+        catch (SqlException excepcion)
+        {
+            throw new InvalidOperationException(
+                "No se pudo obtener el período contable.",
+                excepcion);
+        }
+    }
 }
