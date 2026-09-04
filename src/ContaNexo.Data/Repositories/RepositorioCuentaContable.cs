@@ -112,4 +112,29 @@ public class RepositorioCuentaContable
                 excepcion);
         }
     }
+
+    public async Task ConfigurarMovimientoAsync(
+        int idCuentaContable,
+        bool permiteMovimiento)
+    {
+        var parametros = new DynamicParameters();
+        parametros.Add("@idCuentaContable", idCuentaContable);
+        parametros.Add("@permiteMovimientoCuenta", permiteMovimiento);
+
+        try
+        {
+            await using SqlConnection conexion = _conexionBD.CrearConexion();
+
+            await conexion.ExecuteAsync(
+                "SP_CuentaContable_ConfigurarMovimiento",
+                parametros,
+                commandType: CommandType.StoredProcedure);
+        }
+        catch (SqlException excepcion)
+        {
+            throw new InvalidOperationException(
+                "No se pudo configurar el movimiento de la cuenta contable.",
+                excepcion);
+        }
+    }
 }
