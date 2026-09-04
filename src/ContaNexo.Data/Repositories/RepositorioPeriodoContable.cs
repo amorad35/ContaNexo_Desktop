@@ -87,4 +87,29 @@ public class RepositorioPeriodoContable
                 excepcion);
         }
     }
+
+    public async Task<PeriodoContable> ActualizarAsync(PeriodoContable periodo)
+    {
+        var parametros = new DynamicParameters();
+        parametros.Add("@idPeriodoContable", periodo.IdPeriodoContable);
+        parametros.Add("@nombrePeriodo", periodo.NombrePeriodo);
+        parametros.Add("@fechaInicioPeriodo", periodo.FechaInicioPeriodo);
+        parametros.Add("@fechaFinPeriodo", periodo.FechaFinPeriodo);
+
+        try
+        {
+            await using SqlConnection conexion = _conexionBD.CrearConexion();
+
+            return await conexion.QuerySingleAsync<PeriodoContable>(
+                "SP_PeriodoContable_Actualizar",
+                parametros,
+                commandType: CommandType.StoredProcedure);
+        }
+        catch (SqlException excepcion)
+        {
+            throw new InvalidOperationException(
+                "No se pudo actualizar el período contable.",
+                excepcion);
+        }
+    }
 }
