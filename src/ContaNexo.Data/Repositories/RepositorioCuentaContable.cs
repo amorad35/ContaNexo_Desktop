@@ -84,4 +84,32 @@ public class RepositorioCuentaContable
                 excepcion);
         }
     }
+
+    public async Task<int> ActualizarAsync(CuentaContable cuenta)
+    {
+        var parametros = new DynamicParameters();
+        parametros.Add("@idCuentaContable", cuenta.IdCuentaContable);
+        parametros.Add("@idGrupoContable", cuenta.IdGrupoContable);
+        parametros.Add("@idCuentaPadre", cuenta.IdCuentaPadre);
+        parametros.Add("@codigoCuenta", cuenta.CodigoCuenta);
+        parametros.Add("@nombreCuenta", cuenta.NombreCuenta);
+        parametros.Add("@naturalezaCuenta", cuenta.NaturalezaCuenta);
+        parametros.Add("@ordenCuenta", cuenta.OrdenCuenta);
+
+        try
+        {
+            await using SqlConnection conexion = _conexionBD.CrearConexion();
+
+            return await conexion.QuerySingleAsync<int>(
+                "SP_CuentaContable_Actualizar",
+                parametros,
+                commandType: CommandType.StoredProcedure);
+        }
+        catch (SqlException excepcion)
+        {
+            throw new InvalidOperationException(
+                "No se pudo actualizar la cuenta contable.",
+                excepcion);
+        }
+    }
 }
