@@ -137,4 +137,27 @@ public class RepositorioCuentaContable
                 excepcion);
         }
     }
+
+    public async Task CambiarEstadoAsync(int idCuentaContable, bool estado)
+    {
+        var parametros = new DynamicParameters();
+        parametros.Add("@idCuentaContable", idCuentaContable);
+        parametros.Add("@estadoCuenta", estado);
+
+        try
+        {
+            await using SqlConnection conexion = _conexionBD.CrearConexion();
+
+            await conexion.ExecuteAsync(
+                "SP_CuentaContable_CambiarEstado",
+                parametros,
+                commandType: CommandType.StoredProcedure);
+        }
+        catch (SqlException excepcion)
+        {
+            throw new InvalidOperationException(
+                "No se pudo cambiar el estado de la cuenta contable.",
+                excepcion);
+        }
+    }
 }
