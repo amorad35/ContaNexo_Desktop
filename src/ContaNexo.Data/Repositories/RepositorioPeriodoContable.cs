@@ -112,4 +112,26 @@ public class RepositorioPeriodoContable
                 excepcion);
         }
     }
+
+    public async Task<PeriodoContableCierre> CerrarAsync(int idPeriodoContable)
+    {
+        var parametros = new DynamicParameters();
+        parametros.Add("@idPeriodoContable", idPeriodoContable);
+
+        try
+        {
+            await using SqlConnection conexion = _conexionBD.CrearConexion();
+
+            return await conexion.QuerySingleAsync<PeriodoContableCierre>(
+                "SP_PeriodoContable_Cerrar",
+                parametros,
+                commandType: CommandType.StoredProcedure);
+        }
+        catch (SqlException excepcion)
+        {
+            throw new InvalidOperationException(
+                "No se pudo cerrar el período contable.",
+                excepcion);
+        }
+    }
 }
