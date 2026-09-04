@@ -32,4 +32,27 @@ public class RepositorioCuentaContable
                 excepcion);
         }
     }
+
+    public async Task<CuentaContable?> ObtenerPorIdAsync(int idCuentaContable)
+    {
+        try
+        {
+            await using SqlConnection conexion = _conexionBD.CrearConexion();
+
+            return await conexion.QuerySingleOrDefaultAsync<CuentaContable>(
+                "SP_CuentaContable_ObtenerPorId",
+                new { idCuentaContable },
+                commandType: CommandType.StoredProcedure);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52001)
+        {
+            return null;
+        }
+        catch (SqlException excepcion)
+        {
+            throw new InvalidOperationException(
+                "No se pudo obtener la cuenta contable.",
+                excepcion);
+        }
+    }
 }
