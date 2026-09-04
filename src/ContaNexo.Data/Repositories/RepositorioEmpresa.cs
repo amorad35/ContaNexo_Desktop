@@ -32,4 +32,30 @@ public class RepositorioEmpresa
                 excepcion);
         }
     }
+
+    public async Task<Empresa> CrearAsync(Empresa empresa)
+    {
+        var parametros = new DynamicParameters();
+        parametros.Add("@nombreEmpresa", empresa.NombreEmpresa);
+        parametros.Add("@rucEmpresa", empresa.RucEmpresa);
+        parametros.Add("@direccionEmpresa", empresa.DireccionEmpresa);
+        parametros.Add("@telefonoEmpresa", empresa.TelefonoEmpresa);
+        parametros.Add("@correoEmpresa", empresa.CorreoEmpresa);
+
+        try
+        {
+            await using SqlConnection conexion = _conexionBD.CrearConexion();
+
+            return await conexion.QuerySingleAsync<Empresa>(
+                "SP_Empresa_Crear",
+                parametros,
+                commandType: CommandType.StoredProcedure);
+        }
+        catch (SqlException excepcion)
+        {
+            throw new InvalidOperationException(
+                "No se pudo crear la empresa.",
+                excepcion);
+        }
+    }
 }
