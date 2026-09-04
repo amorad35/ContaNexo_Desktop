@@ -61,6 +61,83 @@ SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 GO
 
+/* PROCEDIMIENTOS DE EMPRESA */
+
+CREATE OR ALTER PROCEDURE dbo.SP_Empresa_Listar
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        SELECT
+            empresa.idEmpresa,
+            empresa.nombreEmpresa,
+            empresa.rucEmpresa,
+            empresa.direccionEmpresa,
+            empresa.telefonoEmpresa,
+            empresa.correoEmpresa
+        FROM dbo.Empresa AS empresa
+        ORDER BY empresa.nombreEmpresa ASC,
+                 empresa.idEmpresa ASC;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE dbo.SP_Empresa_Crear
+    @nombreEmpresa NVARCHAR(150),
+    @rucEmpresa VARCHAR(13) = NULL,
+    @direccionEmpresa NVARCHAR(200) = NULL,
+    @telefonoEmpresa VARCHAR(20) = NULL,
+    @correoEmpresa NVARCHAR(150) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    DECLARE @nombreNormalizado NVARCHAR(150) = LTRIM(RTRIM(@nombreEmpresa));
+    DECLARE @rucNormalizado VARCHAR(13) = NULLIF(LTRIM(RTRIM(@rucEmpresa)), '');
+    DECLARE @direccionNormalizada NVARCHAR(200) = NULLIF(LTRIM(RTRIM(@direccionEmpresa)), N'');
+    DECLARE @telefonoNormalizado VARCHAR(20) = NULLIF(LTRIM(RTRIM(@telefonoEmpresa)), '');
+    DECLARE @correoNormalizado NVARCHAR(150) = NULLIF(LTRIM(RTRIM(@correoEmpresa)), N'');
+    DECLARE @idEmpresaNueva INT;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF NULLIF(@nombreNormalizado, N'') IS NULL
+            THROW 51001, 'El nombre de la empresa es obligatorio.', 1;
+
+        INSERT INTO dbo.Empresa
+            (nombreEmpresa, rucEmpresa, direccionEmpresa, telefonoEmpresa, correoEmpresa)
+        VALUES
+            (@nombreNormalizado, @rucNormalizado, @direccionNormalizada,
+             @telefonoNormalizado, @correoNormalizado);
+
+        SET @idEmpresaNueva = CONVERT(INT, SCOPE_IDENTITY());
+
+        COMMIT TRANSACTION;
+
+        SELECT
+            empresa.idEmpresa,
+            empresa.nombreEmpresa,
+            empresa.rucEmpresa,
+            empresa.direccionEmpresa,
+            empresa.telefonoEmpresa,
+            empresa.correoEmpresa
+        FROM dbo.Empresa AS empresa
+        WHERE empresa.idEmpresa = @idEmpresaNueva;
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE() <> 0
+            ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH;
+END;
+GO
+
 /* PROCEDIMIENTOS DE CUENTACONTABLE */
 
 CREATE OR ALTER PROCEDURE dbo.SP_CuentaContable_Listar
