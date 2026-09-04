@@ -33,6 +33,24 @@ public class RepositorioCuentaContable
         }
     }
 
+    public async Task<IEnumerable<CuentaMovimiento>> ListarMovimientoAsync()
+    {
+        try
+        {
+            await using SqlConnection conexion = _conexionBD.CrearConexion();
+
+            return await conexion.QueryAsync<CuentaMovimiento>(
+                "SP_CuentaContable_ListarMovimiento",
+                commandType: CommandType.StoredProcedure);
+        }
+        catch (SqlException excepcion)
+        {
+            throw new InvalidOperationException(
+                "No se pudieron obtener las cuentas habilitadas para movimiento.",
+                excepcion);
+        }
+    }
+
     public async Task<CuentaContable?> ObtenerPorIdAsync(int idCuentaContable)
     {
         try
