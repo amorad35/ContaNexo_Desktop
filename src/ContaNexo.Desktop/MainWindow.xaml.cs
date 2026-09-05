@@ -26,7 +26,19 @@ namespace ContaNexo.Desktop
             InitializeComponent();
             var conexionBD = new ConexionBD(ConfiguracionBD.CadenaConexion);
             var repositorioEmpresa = new RepositorioEmpresa(conexionBD);
-            DataContext = new MainWindowViewModel(repositorioEmpresa);
+            var repositorioPeriodoContable = new RepositorioPeriodoContable(conexionBD);
+            DataContext = new MainWindowViewModel(
+                repositorioEmpresa,
+                repositorioPeriodoContable);
+            Loaded += AlCargarVentana;
+        }
+
+        private async void AlCargarVentana(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel viewModel)
+            {
+                await viewModel.InicializarAsync();
+            }
         }
 
         protected override void OnSourceInitialized(EventArgs e)

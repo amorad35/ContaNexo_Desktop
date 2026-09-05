@@ -104,7 +104,10 @@
                                 Content="Inicio"
                                 Style="{StaticResource NavigationButtonStyle}"
                                 Tag="{Binding EsInicioActivo}" />
-                        <Button Style="{StaticResource NavigationButtonStyle}" Content="Contabilidad  ▾" />
+                        <Button Command="{Binding NavegarPeriodosContablesCommand}"
+                                Content="Períodos contables"
+                                Style="{StaticResource NavigationButtonStyle}"
+                                Tag="{Binding EsPeriodosContablesActivo}" />
                         <Button Style="{StaticResource NavigationButtonStyle}" Content="Operaciones  ▾" />
                         <Button Style="{StaticResource NavigationButtonStyle}" Content="Reportes  ▾" />
                         <Button Command="{Binding NavegarEmpresaCommand}"

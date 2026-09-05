@@ -80,6 +80,12 @@ public class RepositorioPeriodoContable
                 parametros,
                 commandType: CommandType.StoredProcedure);
         }
+        catch (SqlException excepcion) when (excepcion.Number == 53206)
+        {
+            throw new InvalidOperationException(
+                "El rango de fechas se superpone con otro período de la empresa.",
+                excepcion);
+        }
         catch (SqlException excepcion)
         {
             throw new InvalidOperationException(
@@ -105,6 +111,12 @@ public class RepositorioPeriodoContable
                 parametros,
                 commandType: CommandType.StoredProcedure);
         }
+        catch (SqlException excepcion) when (excepcion.Number == 53308)
+        {
+            throw new InvalidOperationException(
+                "El nuevo rango de fechas se superpone con otro período de la empresa.",
+                excepcion);
+        }
         catch (SqlException excepcion)
         {
             throw new InvalidOperationException(
@@ -126,6 +138,18 @@ public class RepositorioPeriodoContable
                 "SP_PeriodoContable_Cerrar",
                 parametros,
                 commandType: CommandType.StoredProcedure);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 53401)
+        {
+            throw new InvalidOperationException(
+                "El período contable que intentas cerrar ya no existe.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 53402)
+        {
+            throw new InvalidOperationException(
+                "El período contable ya está cerrado.",
+                excepcion);
         }
         catch (SqlException excepcion)
         {

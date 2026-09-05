@@ -4,11 +4,19 @@ namespace ContaNexo.Desktop.ViewModels;
 
 public sealed class ComandoAsync : ICommand
 {
-    private readonly Func<Task> _ejecutarAsync;
-    private readonly Func<bool>? _puedeEjecutar;
+    private readonly Func<object?, Task> _ejecutarAsync;
+    private readonly Predicate<object?>? _puedeEjecutar;
     private bool _estaEjecutando;
 
     public ComandoAsync(Func<Task> ejecutarAsync, Func<bool>? puedeEjecutar = null)
+    {
+        _ejecutarAsync = _ => ejecutarAsync();
+        _puedeEjecutar = puedeEjecutar is null ? null : _ => puedeEjecutar();
+    }
+
+    public ComandoAsync(
+        Func<object?, Task> ejecutarAsync,
+        Predicate<object?>? puedeEjecutar = null)
     {
         _ejecutarAsync = ejecutarAsync;
         _puedeEjecutar = puedeEjecutar;
@@ -18,7 +26,7 @@ public sealed class ComandoAsync : ICommand
 
     public bool CanExecute(object? parameter)
     {
-        return !_estaEjecutando && (_puedeEjecutar?.Invoke() ?? true);
+        return !_estaEjecutando && (_puedeEjecutar?.Invoke(parameter) ?? true);
     }
 
     public async void Execute(object? parameter)
@@ -33,7 +41,7 @@ public sealed class ComandoAsync : ICommand
 
         try
         {
-            await _ejecutarAsync();
+            await _ejecutarAsync(parameter);
         }
         finally
         {
