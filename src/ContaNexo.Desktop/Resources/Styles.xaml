@@ -31,22 +31,38 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="NavigationItem"
-                            Padding="{TemplateBinding Padding}"
-                            Background="{TemplateBinding Background}">
-                        <TextBlock HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   FontFamily="{TemplateBinding FontFamily}"
-                                   FontSize="{TemplateBinding FontSize}"
-                                   FontWeight="{TemplateBinding FontWeight}"
-                                   Foreground="{TemplateBinding Foreground}"
-                                   Text="{TemplateBinding Content}" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="NavigationItem"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}">
+                            <TextBlock HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       FontFamily="{TemplateBinding FontFamily}"
+                                       FontSize="{TemplateBinding FontSize}"
+                                       FontWeight="{TemplateBinding FontWeight}"
+                                       Foreground="{TemplateBinding Foreground}"
+                                       Text="{TemplateBinding Content}" />
+                        </Border>
+                        <Border x:Name="ActiveIndicator"
+                                Height="3"
+                                VerticalAlignment="Bottom"
+                                Background="{StaticResource BrandLightBrush}"
+                                Visibility="Collapsed" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="NavigationItem"
                                     Property="Background"
                                     Value="{StaticResource NavigationHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="Tag" Value="True">
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter TargetName="NavigationItem"
+                                    Property="Background"
+                                    Value="{StaticResource NavigationHoverBrush}" />
+                            <Setter TargetName="ActiveIndicator"
+                                    Property="Visibility"
+                                    Value="Visible" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -57,29 +73,7 @@
     <Style x:Key="ActiveNavigationButtonStyle"
            BasedOn="{StaticResource NavigationButtonStyle}"
            TargetType="Button">
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Foreground" Value="White" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Grid>
-                        <Border Background="{StaticResource NavigationHoverBrush}"
-                                Padding="{TemplateBinding Padding}">
-                            <TextBlock HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       FontFamily="{TemplateBinding FontFamily}"
-                                       FontSize="{TemplateBinding FontSize}"
-                                       FontWeight="{TemplateBinding FontWeight}"
-                                       Foreground="{TemplateBinding Foreground}"
-                                       Text="{TemplateBinding Content}" />
-                        </Border>
-                        <Border Height="3"
-                                VerticalAlignment="Bottom"
-                                Background="{StaticResource BrandLightBrush}" />
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+        <Setter Property="Tag" Value="True" />
     </Style>
 
     <Style x:Key="EyebrowTextStyle" TargetType="TextBlock">
@@ -142,5 +136,121 @@
         <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Foreground" Value="{StaticResource BrandAccentBrush}" />
+    </Style>
+
+    <Style x:Key="PanelCardStyle" TargetType="Border">
+        <Setter Property="Padding" Value="24" />
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="14"
+                                  Direction="270"
+                                  Opacity="0.07"
+                                  ShadowDepth="3"
+                                  Color="#21354D" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="FormLabelTextStyle" TargetType="TextBlock">
+        <Setter Property="Margin" Value="0,0,0,5" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+    </Style>
+
+    <Style x:Key="FormTextBoxStyle" TargetType="TextBox">
+        <Setter Property="MinHeight" Value="40" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FontFamily" Value="Segoe UI" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Style.Triggers>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource BrandAccentBrush}" />
+                <Setter Property="BorderThickness" Value="2" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="PrimaryActionButtonStyle" TargetType="Button">
+        <Setter Property="MinHeight" Value="42" />
+        <Setter Property="Padding" Value="18,10" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Background" Value="{StaticResource BrandAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BrandAccentBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontFamily" Value="Segoe UI" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="ActionButtonBorder"
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                        <TextBlock HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontFamily="{TemplateBinding FontFamily}"
+                                   FontSize="{TemplateBinding FontSize}"
+                                   FontWeight="{TemplateBinding FontWeight}"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   Text="{TemplateBinding Content}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ActionButtonBorder"
+                                    Property="Background"
+                                    Value="#1565B8" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="ActionButtonBorder"
+                                    Property="Opacity"
+                                    Value="0.55" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="FeedbackTextStyle" TargetType="TextBlock">
+        <Setter Property="Margin" Value="0,0,0,14" />
+        <Setter Property="Padding" Value="12,9" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Style.Triggers>
+            <Trigger Property="Text" Value="">
+                <Setter Property="Visibility" Value="Collapsed" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ErrorFeedbackTextStyle"
+           BasedOn="{StaticResource FeedbackTextStyle}"
+           TargetType="TextBlock">
+        <Setter Property="Background" Value="{StaticResource ErrorTintBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
+    </Style>
+
+    <Style x:Key="SuccessFeedbackTextStyle"
+           BasedOn="{StaticResource FeedbackTextStyle}"
+           TargetType="TextBlock">
+        <Setter Property="Background" Value="{StaticResource GreenTintBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource GreenBrush}" />
     </Style>
 </ResourceDictionary>

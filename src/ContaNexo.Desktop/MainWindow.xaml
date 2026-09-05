@@ -3,14 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:views="clr-namespace:ContaNexo.Desktop.Views"
         mc:Ignorable="d"
         Title="ContaNexo"
-        Width="1440"
-        Height="900"
+        Width="1280"
+        Height="760"
         MinWidth="960"
         MinHeight="640"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="Manual"
         Background="{StaticResource AppBackgroundBrush}">
     <Grid Background="{StaticResource AppBackgroundBrush}">
         <Grid.RowDefinitions>
@@ -37,7 +36,7 @@
                     <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="Empresa:" />
                     <TextBlock Margin="6,0,0,0"
                                Style="{StaticResource ContextValueTextStyle}"
-                               Text="Sin configurar" />
+                               Text="{Binding EmpresaActivaTexto}" />
                 </StackPanel>
 
                 <Border Grid.Column="1"
@@ -50,14 +49,14 @@
                     <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="Período:" />
                     <TextBlock Margin="6,0,0,0"
                                Style="{StaticResource ContextValueTextStyle}"
-                               Text="Sin seleccionar" />
+                               Text="{Binding PeriodoActivoTexto}" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="3" Orientation="Horizontal">
                     <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="Fecha:" />
                     <TextBlock Margin="6,0,0,0"
                                Style="{StaticResource ContextValueTextStyle}"
-                               Text="—" />
+                               Text="{Binding FechaActualTexto}" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -101,19 +100,23 @@
                               HorizontalScrollBarVisibility="Auto"
                               VerticalScrollBarVisibility="Disabled">
                     <StackPanel Orientation="Horizontal">
-                        <Button Style="{StaticResource ActiveNavigationButtonStyle}" Content="Inicio" />
+                        <Button Command="{Binding NavegarInicioCommand}"
+                                Content="Inicio"
+                                Style="{StaticResource NavigationButtonStyle}"
+                                Tag="{Binding EsInicioActivo}" />
                         <Button Style="{StaticResource NavigationButtonStyle}" Content="Contabilidad  ▾" />
                         <Button Style="{StaticResource NavigationButtonStyle}" Content="Operaciones  ▾" />
                         <Button Style="{StaticResource NavigationButtonStyle}" Content="Reportes  ▾" />
-                        <Button Style="{StaticResource NavigationButtonStyle}" Content="Configuración  ▾" />
+                        <Button Command="{Binding NavegarEmpresaCommand}"
+                                Content="Configuración"
+                                Style="{StaticResource NavigationButtonStyle}"
+                                Tag="{Binding EsEmpresaActiva}" />
                     </StackPanel>
                 </ScrollViewer>
             </Grid>
         </Border>
 
-        <ContentControl Grid.Row="2">
-            <views:InicioView />
-        </ContentControl>
+        <ContentControl Grid.Row="2" Content="{Binding VistaActual}" />
 
     </Grid>
 </Window>

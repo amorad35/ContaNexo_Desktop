@@ -58,4 +58,31 @@ public class RepositorioEmpresa
                 excepcion);
         }
     }
+
+    public async Task<Empresa> ActualizarAsync(Empresa empresa)
+    {
+        var parametros = new DynamicParameters();
+        parametros.Add("@idEmpresa", empresa.IdEmpresa);
+        parametros.Add("@nombreEmpresa", empresa.NombreEmpresa);
+        parametros.Add("@rucEmpresa", empresa.RucEmpresa);
+        parametros.Add("@direccionEmpresa", empresa.DireccionEmpresa);
+        parametros.Add("@telefonoEmpresa", empresa.TelefonoEmpresa);
+        parametros.Add("@correoEmpresa", empresa.CorreoEmpresa);
+
+        try
+        {
+            await using SqlConnection conexion = _conexionBD.CrearConexion();
+
+            return await conexion.QuerySingleAsync<Empresa>(
+                "SP_Empresa_Actualizar",
+                parametros,
+                commandType: CommandType.StoredProcedure);
+        }
+        catch (SqlException excepcion)
+        {
+            throw new InvalidOperationException(
+                "No se pudo actualizar la empresa.",
+                excepcion);
+        }
+    }
 }

@@ -20,6 +20,8 @@
     <Color x:Key="VioletTintColor">#F2ECFC</Color>
     <Color x:Key="AmberColor">#B9790C</Color>
     <Color x:Key="AmberTintColor">#FFF3DA</Color>
+    <Color x:Key="ErrorColor">#B42318</Color>
+    <Color x:Key="ErrorTintColor">#FEF3F2</Color>
 
     <SolidColorBrush x:Key="NavigationBrush" Color="{StaticResource NavigationColor}" />
     <SolidColorBrush x:Key="NavigationHoverBrush" Color="{StaticResource NavigationHoverColor}" />
@@ -41,4 +43,6 @@
     <SolidColorBrush x:Key="VioletTintBrush" Color="{StaticResource VioletTintColor}" />
     <SolidColorBrush x:Key="AmberBrush" Color="{StaticResource AmberColor}" />
     <SolidColorBrush x:Key="AmberTintBrush" Color="{StaticResource AmberTintColor}" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
+    <SolidColorBrush x:Key="ErrorTintBrush" Color="{StaticResource ErrorTintColor}" />
 </ResourceDictionary>

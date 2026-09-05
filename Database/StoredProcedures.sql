@@ -138,6 +138,66 @@ BEGIN
 END;
 GO
 
+CREATE OR ALTER PROCEDURE dbo.SP_Empresa_Actualizar
+    @idEmpresa INT,
+    @nombreEmpresa NVARCHAR(150),
+    @rucEmpresa VARCHAR(13) = NULL,
+    @direccionEmpresa NVARCHAR(200) = NULL,
+    @telefonoEmpresa VARCHAR(20) = NULL,
+    @correoEmpresa NVARCHAR(150) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    DECLARE @nombreNormalizado NVARCHAR(150) = LTRIM(RTRIM(@nombreEmpresa));
+    DECLARE @rucNormalizado VARCHAR(13) = NULLIF(LTRIM(RTRIM(@rucEmpresa)), '');
+    DECLARE @direccionNormalizada NVARCHAR(200) = NULLIF(LTRIM(RTRIM(@direccionEmpresa)), N'');
+    DECLARE @telefonoNormalizado VARCHAR(20) = NULLIF(LTRIM(RTRIM(@telefonoEmpresa)), '');
+    DECLARE @correoNormalizado NVARCHAR(150) = NULLIF(LTRIM(RTRIM(@correoEmpresa)), N'');
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF NOT EXISTS
+        (
+            SELECT 1
+            FROM dbo.Empresa WITH (UPDLOCK, HOLDLOCK)
+            WHERE idEmpresa = @idEmpresa
+        )
+            THROW 51101, 'La empresa que se desea actualizar no existe.', 1;
+
+        IF NULLIF(@nombreNormalizado, N'') IS NULL
+            THROW 51102, 'El nombre de la empresa es obligatorio.', 1;
+
+        UPDATE dbo.Empresa
+        SET nombreEmpresa = @nombreNormalizado,
+            rucEmpresa = @rucNormalizado,
+            direccionEmpresa = @direccionNormalizada,
+            telefonoEmpresa = @telefonoNormalizado,
+            correoEmpresa = @correoNormalizado
+        WHERE idEmpresa = @idEmpresa;
+
+        COMMIT TRANSACTION;
+
+        SELECT
+            empresa.idEmpresa,
+            empresa.nombreEmpresa,
+            empresa.rucEmpresa,
+            empresa.direccionEmpresa,
+            empresa.telefonoEmpresa,
+            empresa.correoEmpresa
+        FROM dbo.Empresa AS empresa
+        WHERE empresa.idEmpresa = @idEmpresa;
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE() <> 0
+            ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH;
+END;
+GO
+
 /* PROCEDIMIENTOS DE CUENTACONTABLE */
 
 CREATE OR ALTER PROCEDURE dbo.SP_CuentaContable_Listar
