@@ -27,9 +27,11 @@ namespace ContaNexo.Desktop
             var conexionBD = new ConexionBD(ConfiguracionBD.CadenaConexion);
             var repositorioEmpresa = new RepositorioEmpresa(conexionBD);
             var repositorioPeriodoContable = new RepositorioPeriodoContable(conexionBD);
+            var repositorioCuentaContable = new RepositorioCuentaContable(conexionBD);
             DataContext = new MainWindowViewModel(
                 repositorioEmpresa,
-                repositorioPeriodoContable);
+                repositorioPeriodoContable,
+                repositorioCuentaContable);
             Loaded += AlCargarVentana;
         }
 

@@ -108,6 +108,10 @@
                                 Content="Períodos contables"
                                 Style="{StaticResource NavigationButtonStyle}"
                                 Tag="{Binding EsPeriodosContablesActivo}" />
+                        <Button Command="{Binding NavegarCatalogoCommand}"
+                                Content="Catálogo de cuentas"
+                                Style="{StaticResource NavigationButtonStyle}"
+                                Tag="{Binding EsCatalogoActivo}" />
                         <Button Style="{StaticResource NavigationButtonStyle}" Content="Operaciones  ▾" />
                         <Button Style="{StaticResource NavigationButtonStyle}" Content="Reportes  ▾" />
                         <Button Command="{Binding NavegarEmpresaCommand}"

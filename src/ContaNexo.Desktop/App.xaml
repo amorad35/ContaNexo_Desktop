@@ -19,6 +19,9 @@
             <DataTemplate DataType="{x:Type viewModels:PeriodoContableViewModel}">
                 <views:PeriodoContableView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:CatalogoCuentasViewModel}">
+                <views:CatalogoCuentasView />
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

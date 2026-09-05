@@ -15,13 +15,13 @@ public class RepositorioCuentaContable
         _conexionBD = conexionBD;
     }
 
-    public async Task<IEnumerable<CuentaContable>> ListarAsync()
+    public async Task<IEnumerable<CuentaContableListado>> ListarAsync()
     {
         try
         {
             await using SqlConnection conexion = _conexionBD.CrearConexion();
 
-            return await conexion.QueryAsync<CuentaContable>(
+            return await conexion.QueryAsync<CuentaContableListado>(
                 "SP_CuentaContable_Listar",
                 commandType: CommandType.StoredProcedure);
         }
@@ -51,13 +51,13 @@ public class RepositorioCuentaContable
         }
     }
 
-    public async Task<CuentaContable?> ObtenerPorIdAsync(int idCuentaContable)
+    public async Task<CuentaContableDetalle?> ObtenerPorIdAsync(int idCuentaContable)
     {
         try
         {
             await using SqlConnection conexion = _conexionBD.CrearConexion();
 
-            return await conexion.QuerySingleOrDefaultAsync<CuentaContable>(
+            return await conexion.QuerySingleOrDefaultAsync<CuentaContableDetalle>(
                 "SP_CuentaContable_ObtenerPorId",
                 new { idCuentaContable },
                 commandType: CommandType.StoredProcedure);

@@ -1,0 +1,750 @@
+<UserControl x:Class="ContaNexo.Desktop.Views.CatalogoCuentasView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:ContaNexo.Desktop.Converters"
+             d:DesignHeight="760"
+             d:DesignWidth="1400"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <converters:NormalizarDescripcionConverter x:Key="NormalizarDescripcionConverter" />
+
+        <Style x:Key="FiltroComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style x:Key="BuscadorCompactoStyle"
+               BasedOn="{StaticResource FormTextBoxStyle}"
+               TargetType="TextBox">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Padding" Value="10,6" />
+        </Style>
+
+        <Style x:Key="CatalogoDataGridStyle" TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="False" />
+            <Setter Property="CanUserAddRows" Value="False" />
+            <Setter Property="CanUserDeleteRows" Value="False" />
+            <Setter Property="CanUserReorderColumns" Value="False" />
+            <Setter Property="CanUserResizeRows" Value="False" />
+            <Setter Property="CanUserSortColumns" Value="False" />
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+            <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="VerticalGridLinesBrush" Value="Transparent" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="RowHeaderWidth" Value="0" />
+            <Setter Property="RowHeight" Value="44" />
+            <Setter Property="SelectionMode" Value="Single" />
+            <Setter Property="SelectionUnit" Value="FullRow" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+
+        <Style x:Key="CatalogoColumnHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Background" Value="{StaticResource ContextBarBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="CatalogoCellStyle" TargetType="DataGridCell">
+            <Setter Property="Padding" Value="10,3" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        </Style>
+
+        <Style x:Key="CatalogoRowStyle" TargetType="DataGridRow">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource ContextBarBrush}" />
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{StaticResource BlueTintBrush}" />
+                    <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+                </Trigger>
+                <DataTrigger Binding="{Binding EstadoCuenta}" Value="False">
+                    <Setter Property="Opacity" Value="0.68" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BadgeEstadoStyle" TargetType="Border">
+            <Setter Property="Padding" Value="8,2" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Background" Value="{StaticResource ContextBarBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="11" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EstadoCuenta}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GreenTintBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource GreenBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BadgeEstadoTextoStyle" TargetType="TextBlock">
+            <Setter Property="Text" Value="Inactiva" />
+            <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EstadoCuenta}" Value="True">
+                    <Setter Property="Text" Value="Activa" />
+                    <Setter Property="Foreground" Value="{StaticResource GreenBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BadgeMovimientoStyle" TargetType="Border">
+            <Setter Property="Padding" Value="8,2" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Background" Value="{StaticResource AmberTintBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AmberBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="11" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding PermiteMovimientoCuenta}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource BlueTintBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource BrandAccentBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BadgeMovimientoTextoStyle" TargetType="TextBlock">
+            <Setter Property="Text" Value="Agrupadora" />
+            <Setter Property="Foreground" Value="{StaticResource AmberBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding PermiteMovimientoCuenta}" Value="True">
+                    <Setter Property="Text" Value="Movimiento" />
+                    <Setter Property="Foreground" Value="{StaticResource BrandAccentBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PanelCargaCatalogoStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EstaCargando}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PanelErrorCatalogoStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding TieneError}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PanelVacioCatalogoStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding MostrarEstadoVacio}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PanelSinCoincidenciasStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding MostrarSinCoincidencias}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ListadoCatalogoStyle" TargetType="DataGrid"
+               BasedOn="{StaticResource CatalogoDataGridStyle}">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding MostrarListado}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PanelSinSeleccionStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding MostrarEstadoSinSeleccion}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PanelCargaDetalleStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EstaCargandoDetalle}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PanelErrorDetalleStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding TieneErrorDetalle}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PanelDetalleStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding MostrarDetalle}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="FichaEducativaStyle" TargetType="StackPanel">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.TieneFichaEducativa, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SinFichaEducativaStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Visible" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.TieneFichaEducativa, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer HorizontalContentAlignment="Stretch"
+                  HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto">
+        <Grid Margin="40,24,40,40"
+              HorizontalAlignment="Stretch">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0">
+                <TextBlock Style="{StaticResource EyebrowTextStyle}"
+                           Text="CONTABILIDAD" />
+                <TextBlock Style="{StaticResource PageTitleTextStyle}"
+                           Text="Catálogo de cuentas" />
+                <TextBlock MaxWidth="960"
+                           Margin="0,7,0,0"
+                           HorizontalAlignment="Left"
+                           Style="{StaticResource BodyTextStyle}"
+                           Text="Consulta la clasificación, naturaleza y contenido educativo de las cuentas que sustentan el registro contable." />
+            </StackPanel>
+
+            <Border Grid.Row="1"
+                    Margin="0,18,0,0"
+                    Padding="20,16"
+                    Style="{StaticResource PanelCardStyle}">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                                       Text="Cuentas registradas" />
+                            <TextBlock Margin="0,6,0,0"
+                                       Style="{StaticResource BodyTextStyle}"
+                                       Text="Busca y filtra localmente sin modificar el catálogo." />
+                        </StackPanel>
+                        <TextBlock Grid.Column="1"
+                                   Margin="24,0,0,0"
+                                   VerticalAlignment="Bottom"
+                                   Style="{StaticResource ContextValueTextStyle}"
+                                   Text="{Binding ResumenResultados}" />
+                    </Grid>
+
+                    <Grid Margin="0,14,0,0"
+                          IsEnabled="{Binding FiltrosHabilitados}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" MinWidth="180" />
+                            <ColumnDefinition Width="14" />
+                            <ColumnDefinition Width="*" MinWidth="120" />
+                            <ColumnDefinition Width="14" />
+                            <ColumnDefinition Width="*" MinWidth="110" />
+                            <ColumnDefinition Width="14" />
+                            <ColumnDefinition Width="*" MinWidth="145" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                       Text="Buscar cuenta" />
+                            <TextBox Style="{StaticResource BuscadorCompactoStyle}"
+                                     Text="{Binding TextoBusqueda, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Busca por código o nombre" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                       Text="Elemento" />
+                            <ComboBox DisplayMemberPath="Nombre"
+                                      ItemsSource="{Binding Elementos}"
+                                      SelectedItem="{Binding ElementoSeleccionado, Mode=TwoWay}"
+                                      Style="{StaticResource FiltroComboBoxStyle}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                       Text="Estado" />
+                            <ComboBox DisplayMemberPath="Nombre"
+                                      ItemsSource="{Binding Estados}"
+                                      SelectedItem="{Binding EstadoSeleccionado, Mode=TwoWay}"
+                                      Style="{StaticResource FiltroComboBoxStyle}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="6">
+                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                       Text="Movimiento" />
+                            <ComboBox DisplayMemberPath="Nombre"
+                                      ItemsSource="{Binding Movimientos}"
+                                      SelectedItem="{Binding MovimientoSeleccionado, Mode=TwoWay}"
+                                      Style="{StaticResource FiltroComboBoxStyle}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Margin="0,16,0,0"
+                            Padding="16"
+                            Background="{StaticResource BlueTintBrush}"
+                            BorderBrush="{StaticResource DividerBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Style="{StaticResource PanelCargaCatalogoStyle}">
+                        <TextBlock HorizontalAlignment="Center"
+                                   Style="{StaticResource BodyTextStyle}"
+                                   Text="Cargando catálogo de cuentas..." />
+                    </Border>
+
+                    <Border Margin="0,16,0,0"
+                            Padding="14"
+                            Background="{StaticResource ErrorTintBrush}"
+                            BorderBrush="{StaticResource ErrorBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Style="{StaticResource PanelErrorCatalogoStyle}">
+                        <TextBlock Foreground="{StaticResource ErrorBrush}"
+                                   Text="{Binding MensajeError}"
+                                   TextWrapping="Wrap" />
+                    </Border>
+
+                    <Border Margin="0,16,0,0"
+                            Padding="20"
+                            Background="{StaticResource ContextBarBrush}"
+                            BorderBrush="{StaticResource DividerBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Style="{StaticResource PanelVacioCatalogoStyle}">
+                        <StackPanel>
+                            <TextBlock HorizontalAlignment="Center"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Text="Todavía no hay cuentas registradas" />
+                            <TextBlock Margin="0,7,0,0"
+                                       HorizontalAlignment="Center"
+                                       Style="{StaticResource BodyTextStyle}"
+                                       Text="El catálogo no contiene cuentas para mostrar." />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Margin="0,16,0,0"
+                            Padding="20"
+                            Background="{StaticResource ContextBarBrush}"
+                            BorderBrush="{StaticResource DividerBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Style="{StaticResource PanelSinCoincidenciasStyle}">
+                        <StackPanel>
+                            <TextBlock HorizontalAlignment="Center"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Text="No existen coincidencias" />
+                            <TextBlock Margin="0,7,0,0"
+                                       HorizontalAlignment="Center"
+                                       Style="{StaticResource BodyTextStyle}"
+                                       Text="Prueba con otra búsqueda o cambia los filtros seleccionados." />
+                        </StackPanel>
+                    </Border>
+
+                    <DataGrid Height="300"
+                              Margin="0,16,0,0"
+                              CellStyle="{StaticResource CatalogoCellStyle}"
+                              ColumnHeaderStyle="{StaticResource CatalogoColumnHeaderStyle}"
+                              ItemsSource="{Binding CuentasFiltradas}"
+                              RowStyle="{StaticResource CatalogoRowStyle}"
+                              SelectedItem="{Binding CuentaSeleccionada, Mode=TwoWay}"
+                              Style="{StaticResource ListadoCatalogoStyle}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Width="90"
+                                                Binding="{Binding CodigoCuenta}"
+                                                Header="CÓDIGO" />
+                            <DataGridTemplateColumn Width="2*" MinWidth="170" Header="CUENTA">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock FontWeight="SemiBold"
+                                                       Text="{Binding NombreCuenta}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Margin="0,3,0,0"
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource MutedTextBrush}"
+                                                       Text="{Binding CodigoCuentaPadre, StringFormat=Subcuenta de {0}}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding CodigoCuentaPadre}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Width="100"
+                                                Binding="{Binding NombreElemento}"
+                                                Header="ELEMENTO" />
+                            <DataGridTextColumn Width="1.5*" MinWidth="140"
+                                                Binding="{Binding NombreGrupo}"
+                                                Header="GRUPO" />
+                            <DataGridTextColumn Width="90"
+                                                Binding="{Binding NaturalezaCuenta}"
+                                                Header="NATURALEZA" />
+                            <DataGridTemplateColumn Width="110" Header="MOVIMIENTO">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource BadgeMovimientoStyle}">
+                                            <TextBlock Style="{StaticResource BadgeMovimientoTextoStyle}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Width="78" Header="ESTADO">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource BadgeEstadoStyle}">
+                                            <TextBlock Style="{StaticResource BadgeEstadoTextoStyle}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="2"
+                    Margin="0,16,0,0"
+                    Padding="20,16"
+                    Style="{StaticResource PanelCardStyle}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                               Text="Cuenta seleccionada" />
+                    <TextBlock Margin="0,4,0,0"
+                               Style="{StaticResource BodyTextStyle}"
+                               Text="Consulta la identificación, clasificación y ficha educativa de una cuenta." />
+
+                    <Border Margin="0,14,0,0"
+                            Padding="20"
+                            Background="{StaticResource ContextBarBrush}"
+                            BorderBrush="{StaticResource DividerBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Style="{StaticResource PanelSinSeleccionStyle}">
+                        <TextBlock HorizontalAlignment="Center"
+                                   Style="{StaticResource BodyTextStyle}"
+                                   Text="Selecciona una cuenta para consultar su detalle." />
+                    </Border>
+
+                    <Border Margin="0,14,0,0"
+                            Padding="16"
+                            Background="{StaticResource BlueTintBrush}"
+                            BorderBrush="{StaticResource DividerBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Style="{StaticResource PanelCargaDetalleStyle}">
+                        <TextBlock HorizontalAlignment="Center"
+                                   Style="{StaticResource BodyTextStyle}"
+                                   Text="Consultando información de la cuenta..." />
+                    </Border>
+
+                    <Border Margin="0,14,0,0"
+                            Padding="14"
+                            Background="{StaticResource ErrorTintBrush}"
+                            BorderBrush="{StaticResource ErrorBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Style="{StaticResource PanelErrorDetalleStyle}">
+                        <TextBlock Foreground="{StaticResource ErrorBrush}"
+                                   Text="{Binding MensajeErrorDetalle}"
+                                   TextWrapping="Wrap" />
+                    </Border>
+
+                    <Border Margin="0,14,0,0"
+                            Padding="0"
+                            BorderThickness="0"
+                            Style="{StaticResource PanelDetalleStyle}">
+                        <StackPanel DataContext="{Binding DetalleSeleccionado}">
+                            <Border Padding="18,15"
+                                    Background="{StaticResource ContextBarBrush}"
+                                    BorderBrush="{StaticResource DividerBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="10">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource EyebrowTextStyle}"
+                                               Text="RESUMEN DE LA CUENTA" />
+
+                                    <Grid Margin="0,11,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="0.8*" />
+                                            <ColumnDefinition Width="2.2*" />
+                                            <ColumnDefinition Width="1*" />
+                                            <ColumnDefinition Width="1*" />
+                                            <ColumnDefinition Width="1.2*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Margin="0,0,14,0">
+                                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                                       Text="Código" />
+                                            <TextBlock FontSize="18"
+                                                       FontWeight="SemiBold"
+                                                       Text="{Binding CodigoCuenta}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Margin="0,0,14,0">
+                                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                                       Text="Cuenta" />
+                                            <TextBlock FontSize="15"
+                                                       FontWeight="SemiBold"
+                                                       Text="{Binding NombreCuenta}"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Margin="0,0,14,0">
+                                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                                       Text="Naturaleza" />
+                                            <TextBlock Foreground="{StaticResource SecondaryTextBrush}"
+                                                       Text="{Binding NaturalezaCuenta}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="3" Margin="0,0,14,0">
+                                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                                       Text="Estado" />
+                                            <Border Style="{StaticResource BadgeEstadoStyle}">
+                                                <TextBlock Style="{StaticResource BadgeEstadoTextoStyle}" />
+                                            </Border>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="4">
+                                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                                       Text="Movimiento" />
+                                            <Border Style="{StaticResource BadgeMovimientoStyle}">
+                                                <TextBlock Style="{StaticResource BadgeMovimientoTextoStyle}" />
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Border Height="1"
+                                            Margin="0,13,0,11"
+                                            Background="{StaticResource DividerBrush}" />
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1.1*" />
+                                            <ColumnDefinition Width="1.5*" />
+                                            <ColumnDefinition Width="1.5*" />
+                                            <ColumnDefinition Width="1*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Margin="0,0,14,0">
+                                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                                       Text="Elemento" />
+                                            <TextBlock Foreground="{StaticResource SecondaryTextBrush}"
+                                                       Text="{Binding DataContext.ElementoTexto, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Margin="0,0,14,0">
+                                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                                       Text="Grupo" />
+                                            <TextBlock Foreground="{StaticResource SecondaryTextBrush}"
+                                                       Text="{Binding DataContext.GrupoTexto, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Margin="0,0,14,0">
+                                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                                       Text="Cuenta padre" />
+                                            <TextBlock Foreground="{StaticResource SecondaryTextBrush}"
+                                                       TextWrapping="Wrap">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text"
+                                                                Value="{Binding DataContext.CuentaPadreTexto, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IdCuentaPadre}" Value="{x:Null}">
+                                                                <Setter Property="Text" Value="Cuenta principal" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="3">
+                                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                                       Text="Jerarquía" />
+                                            <TextBlock Foreground="{StaticResource SecondaryTextBrush}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="Sin cuentas hijas" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding TieneHijas}" Value="True">
+                                                                <Setter Property="Text" Value="Con cuentas hijas" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <StackPanel Margin="0,16,0,0"
+                                        Style="{StaticResource FichaEducativaStyle}">
+                                <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                                           Text="Ficha educativa" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Style="{StaticResource BodyTextStyle}"
+                                           Text="Comprende el propósito de la cuenta y cuándo aumenta o disminuye." />
+
+                                <Border Margin="0,12,0,0"
+                                        Padding="18,15"
+                                        Background="{StaticResource ContextBarBrush}"
+                                        BorderBrush="{StaticResource DividerBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="10">
+                                    <StackPanel HorizontalAlignment="Stretch">
+                                        <TextBlock FontSize="16"
+                                                   FontWeight="SemiBold"
+                                                   Text="Descripción" />
+                                        <TextBlock Margin="0,7,0,0"
+                                                   HorizontalAlignment="Stretch"
+                                                   Style="{StaticResource BodyTextStyle}"
+                                                   Text="{Binding DescripcionDetalle, Converter={StaticResource NormalizarDescripcionConverter}}"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Grid Margin="0,12,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="12" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0"
+                                            Padding="18,15"
+                                            VerticalAlignment="Top"
+                                            Background="{StaticResource GreenTintBrush}"
+                                            BorderBrush="{StaticResource GreenBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="10">
+                                        <StackPanel>
+                                            <TextBlock FontSize="16"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource GreenBrush}"
+                                                       Text="Dinámica de débitos" />
+                                            <TextBlock Margin="0,7,0,0"
+                                                       Style="{StaticResource BodyTextStyle}"
+                                                       Text="{Binding DinamicaDebitoDetalle}"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="2"
+                                            Padding="18,15"
+                                            VerticalAlignment="Top"
+                                            Background="{StaticResource BlueTintBrush}"
+                                            BorderBrush="{StaticResource BrandAccentBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="10">
+                                        <StackPanel>
+                                            <TextBlock FontSize="16"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource BrandAccentBrush}"
+                                                       Text="Dinámica de créditos" />
+                                            <TextBlock Margin="0,7,0,0"
+                                                       Style="{StaticResource BodyTextStyle}"
+                                                       Text="{Binding DinamicaCreditoDetalle}"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+
+                            <Border Margin="0,16,0,0"
+                                    Padding="18,15"
+                                    Background="{StaticResource ContextBarBrush}"
+                                    BorderBrush="{StaticResource DividerBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Style="{StaticResource SinFichaEducativaStyle}">
+                                <StackPanel>
+                                    <TextBlock FontSize="16"
+                                               FontWeight="SemiBold"
+                                               Text="Sin ficha educativa independiente" />
+                                    <TextBlock Margin="0,7,0,0"
+                                               Style="{StaticResource BodyTextStyle}"
+                                               Text="Esta cuenta no tiene una ficha educativa independiente." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

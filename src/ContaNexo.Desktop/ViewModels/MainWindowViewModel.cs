@@ -9,6 +9,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private readonly InicioViewModel _inicioViewModel;
     private readonly EmpresaViewModel _empresaViewModel;
     private readonly PeriodoContableViewModel _periodoContableViewModel;
+    private readonly CatalogoCuentasViewModel _catalogoCuentasViewModel;
     private ViewModelBase _vistaActual;
     private Empresa? _empresaActiva;
     private PeriodoContableListado? _periodoActivo;
@@ -16,9 +17,11 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel(
         RepositorioEmpresa repositorioEmpresa,
-        RepositorioPeriodoContable repositorioPeriodoContable)
+        RepositorioPeriodoContable repositorioPeriodoContable,
+        RepositorioCuentaContable repositorioCuentaContable)
     {
-        _inicioViewModel = new InicioViewModel();
+        _catalogoCuentasViewModel = new CatalogoCuentasViewModel(repositorioCuentaContable);
+        _inicioViewModel = new InicioViewModel(NavegarACatalogoAsync);
         _empresaViewModel = new EmpresaViewModel(repositorioEmpresa, EstablecerEmpresaActiva);
         _periodoContableViewModel = new PeriodoContableViewModel(
             repositorioPeriodoContable,
@@ -27,6 +30,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 
         NavegarInicioCommand = new ComandoRelay(NavegarAInicio);
         NavegarPeriodosContablesCommand = new ComandoAsync(NavegarAPeriodosContablesAsync);
+        NavegarCatalogoCommand = new ComandoAsync(NavegarACatalogoAsync);
         NavegarEmpresaCommand = new ComandoAsync(NavegarAEmpresaAsync);
     }
 
@@ -39,6 +43,7 @@ public sealed class MainWindowViewModel : ViewModelBase
             {
                 NotificarCambio(nameof(EsInicioActivo));
                 NotificarCambio(nameof(EsPeriodosContablesActivo));
+                NotificarCambio(nameof(EsCatalogoActivo));
                 NotificarCambio(nameof(EsEmpresaActiva));
             }
         }
@@ -60,9 +65,13 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public bool EsEmpresaActiva => ReferenceEquals(VistaActual, _empresaViewModel);
 
+    public bool EsCatalogoActivo => ReferenceEquals(VistaActual, _catalogoCuentasViewModel);
+
     public ComandoRelay NavegarInicioCommand { get; }
 
     public ComandoAsync NavegarPeriodosContablesCommand { get; }
+
+    public ComandoAsync NavegarCatalogoCommand { get; }
 
     public ComandoAsync NavegarEmpresaCommand { get; }
 
@@ -84,6 +93,12 @@ public sealed class MainWindowViewModel : ViewModelBase
             _empresaActiva,
             _empresaViewModel.MensajeError,
             _periodoActivo?.IdPeriodoContable);
+    }
+
+    private async Task NavegarACatalogoAsync()
+    {
+        VistaActual = _catalogoCuentasViewModel;
+        await _catalogoCuentasViewModel.CargarAsync();
     }
 
     private async Task NavegarAEmpresaAsync()

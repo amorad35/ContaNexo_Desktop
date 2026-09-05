@@ -71,7 +71,12 @@
 
             <WrapPanel Grid.Row="2"
                        HorizontalAlignment="Center">
-                <Border Style="{StaticResource ModuleCardStyle}">
+                <Border Cursor="Hand"
+                        Style="{StaticResource ModuleCardStyle}">
+                    <Border.InputBindings>
+                        <MouseBinding Command="{Binding NavegarCatalogoCommand}"
+                                      MouseAction="LeftClick" />
+                    </Border.InputBindings>
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
