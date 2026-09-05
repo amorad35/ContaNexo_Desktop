@@ -13,4 +13,6 @@ public class Empresa
     public string? TelefonoEmpresa { get; set; }
 
     public string? CorreoEmpresa { get; set; }
+
+    public byte[]? LogoEmpresa { get; set; }
 }

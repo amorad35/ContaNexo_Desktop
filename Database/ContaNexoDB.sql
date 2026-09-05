@@ -69,7 +69,8 @@ CREATE TABLE dbo.Empresa
     rucEmpresa         VARCHAR(13) NULL,
     direccionEmpresa   NVARCHAR(200) NULL,
     telefonoEmpresa    VARCHAR(20) NULL,
-    correoEmpresa      NVARCHAR(150) NULL
+    correoEmpresa      NVARCHAR(150) NULL,
+    logoEmpresa        VARBINARY(MAX) NULL
 );
 GO
 

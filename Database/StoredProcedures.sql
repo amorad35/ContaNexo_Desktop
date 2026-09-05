@@ -75,7 +75,8 @@ BEGIN
             empresa.rucEmpresa,
             empresa.direccionEmpresa,
             empresa.telefonoEmpresa,
-            empresa.correoEmpresa
+            empresa.correoEmpresa,
+            empresa.logoEmpresa
         FROM dbo.Empresa AS empresa
         ORDER BY empresa.nombreEmpresa ASC,
                  empresa.idEmpresa ASC;
@@ -91,7 +92,8 @@ CREATE OR ALTER PROCEDURE dbo.SP_Empresa_Crear
     @rucEmpresa VARCHAR(13) = NULL,
     @direccionEmpresa NVARCHAR(200) = NULL,
     @telefonoEmpresa VARCHAR(20) = NULL,
-    @correoEmpresa NVARCHAR(150) = NULL
+    @correoEmpresa NVARCHAR(150) = NULL,
+    @logoEmpresa VARBINARY(MAX) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -111,10 +113,11 @@ BEGIN
             THROW 51001, 'El nombre de la empresa es obligatorio.', 1;
 
         INSERT INTO dbo.Empresa
-            (nombreEmpresa, rucEmpresa, direccionEmpresa, telefonoEmpresa, correoEmpresa)
+            (nombreEmpresa, rucEmpresa, direccionEmpresa, telefonoEmpresa,
+             correoEmpresa, logoEmpresa)
         VALUES
             (@nombreNormalizado, @rucNormalizado, @direccionNormalizada,
-             @telefonoNormalizado, @correoNormalizado);
+             @telefonoNormalizado, @correoNormalizado, @logoEmpresa);
 
         SET @idEmpresaNueva = CONVERT(INT, SCOPE_IDENTITY());
 
@@ -126,7 +129,8 @@ BEGIN
             empresa.rucEmpresa,
             empresa.direccionEmpresa,
             empresa.telefonoEmpresa,
-            empresa.correoEmpresa
+            empresa.correoEmpresa,
+            empresa.logoEmpresa
         FROM dbo.Empresa AS empresa
         WHERE empresa.idEmpresa = @idEmpresaNueva;
     END TRY
@@ -144,7 +148,8 @@ CREATE OR ALTER PROCEDURE dbo.SP_Empresa_Actualizar
     @rucEmpresa VARCHAR(13) = NULL,
     @direccionEmpresa NVARCHAR(200) = NULL,
     @telefonoEmpresa VARCHAR(20) = NULL,
-    @correoEmpresa NVARCHAR(150) = NULL
+    @correoEmpresa NVARCHAR(150) = NULL,
+    @logoEmpresa VARBINARY(MAX) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -175,7 +180,8 @@ BEGIN
             rucEmpresa = @rucNormalizado,
             direccionEmpresa = @direccionNormalizada,
             telefonoEmpresa = @telefonoNormalizado,
-            correoEmpresa = @correoNormalizado
+            correoEmpresa = @correoNormalizado,
+            logoEmpresa = @logoEmpresa
         WHERE idEmpresa = @idEmpresa;
 
         COMMIT TRANSACTION;
@@ -186,7 +192,8 @@ BEGIN
             empresa.rucEmpresa,
             empresa.direccionEmpresa,
             empresa.telefonoEmpresa,
-            empresa.correoEmpresa
+            empresa.correoEmpresa,
+            empresa.logoEmpresa
         FROM dbo.Empresa AS empresa
         WHERE empresa.idEmpresa = @idEmpresa;
     END TRY

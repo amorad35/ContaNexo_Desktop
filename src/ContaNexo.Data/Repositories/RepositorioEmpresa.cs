@@ -41,6 +41,7 @@ public class RepositorioEmpresa
         parametros.Add("@direccionEmpresa", empresa.DireccionEmpresa);
         parametros.Add("@telefonoEmpresa", empresa.TelefonoEmpresa);
         parametros.Add("@correoEmpresa", empresa.CorreoEmpresa);
+        parametros.Add("@logoEmpresa", empresa.LogoEmpresa, DbType.Binary);
 
         try
         {
@@ -68,6 +69,7 @@ public class RepositorioEmpresa
         parametros.Add("@direccionEmpresa", empresa.DireccionEmpresa);
         parametros.Add("@telefonoEmpresa", empresa.TelefonoEmpresa);
         parametros.Add("@correoEmpresa", empresa.CorreoEmpresa);
+        parametros.Add("@logoEmpresa", empresa.LogoEmpresa, DbType.Binary);
 
         try
         {
