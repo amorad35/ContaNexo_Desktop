@@ -3,10 +3,117 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ContaNexo.Desktop"
+        xmlns:views="clr-namespace:ContaNexo.Desktop.Views"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="ContaNexo"
+        Width="1440"
+        Height="900"
+        MinWidth="960"
+        MinHeight="640"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource AppBackgroundBrush}">
+    <Grid Background="{StaticResource AppBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Contexto de trabajo: reservado para datos reales en un bloque posterior. -->
+        <Border Grid.Row="0"
+                Padding="32,10"
+                Background="{StaticResource ContextBarBrush}"
+                BorderBrush="{StaticResource DividerBrush}"
+                BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="Empresa:" />
+                    <TextBlock Margin="6,0,0,0"
+                               Style="{StaticResource ContextValueTextStyle}"
+                               Text="Sin configurar" />
+                </StackPanel>
+
+                <Border Grid.Column="1"
+                        Width="1"
+                        Height="18"
+                        Margin="24,0"
+                        Background="{StaticResource DividerBrush}" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="Período:" />
+                    <TextBlock Margin="6,0,0,0"
+                               Style="{StaticResource ContextValueTextStyle}"
+                               Text="Sin seleccionar" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="Fecha:" />
+                    <TextBlock Margin="6,0,0,0"
+                               Style="{StaticResource ContextValueTextStyle}"
+                               Text="—" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Navegación visual. Los comandos y desplegables se incorporarán después. -->
+        <Border Grid.Row="1"
+                Background="{StaticResource NavigationBrush}"
+                BorderBrush="{StaticResource NavigationBorderBrush}"
+                BorderThickness="0,0,0,1">
+            <Grid Margin="32,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0"
+                            Margin="0,0,34,0"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                    <Border Width="38"
+                            Height="38"
+                            Background="{StaticResource BrandAccentBrush}"
+                            CornerRadius="9">
+                        <TextBlock HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="13"
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   Text="CN" />
+                    </Border>
+                    <TextBlock Margin="11,0,0,0"
+                               VerticalAlignment="Center"
+                               FontSize="24"
+                               FontWeight="SemiBold"
+                               Foreground="White">
+                        <Run Text="Conta" /><Run Foreground="{StaticResource BrandLightBrush}" Text="Nexo" />
+                    </TextBlock>
+                </StackPanel>
+
+                <ScrollViewer Grid.Column="1"
+                              HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Disabled">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Style="{StaticResource ActiveNavigationButtonStyle}" Content="Inicio" />
+                        <Button Style="{StaticResource NavigationButtonStyle}" Content="Contabilidad  ▾" />
+                        <Button Style="{StaticResource NavigationButtonStyle}" Content="Operaciones  ▾" />
+                        <Button Style="{StaticResource NavigationButtonStyle}" Content="Reportes  ▾" />
+                        <Button Style="{StaticResource NavigationButtonStyle}" Content="Configuración  ▾" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <ContentControl Grid.Row="2">
+            <views:InicioView />
+        </ContentControl>
 
     </Grid>
 </Window>

@@ -1,0 +1,44 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="NavigationColor">#0E3156</Color>
+    <Color x:Key="NavigationHoverColor">#184A78</Color>
+    <Color x:Key="NavigationBorderColor">#2A5E8C</Color>
+    <Color x:Key="BrandAccentColor">#1976D2</Color>
+    <Color x:Key="BrandLightColor">#55C2F3</Color>
+    <Color x:Key="PrimaryTextColor">#102039</Color>
+    <Color x:Key="SecondaryTextColor">#5D6B7E</Color>
+    <Color x:Key="MutedTextColor">#7B8798</Color>
+    <Color x:Key="AppBackgroundColor">#F4F7FB</Color>
+    <Color x:Key="SurfaceColor">#FFFFFF</Color>
+    <Color x:Key="ContextBarColor">#F9FBFD</Color>
+    <Color x:Key="DividerColor">#DDE5EE</Color>
+    <Color x:Key="CardBorderColor">#E1E8F0</Color>
+    <Color x:Key="BlueTintColor">#EAF3FF</Color>
+    <Color x:Key="GreenColor">#16885A</Color>
+    <Color x:Key="GreenTintColor">#E8F7EF</Color>
+    <Color x:Key="VioletColor">#6B46B4</Color>
+    <Color x:Key="VioletTintColor">#F2ECFC</Color>
+    <Color x:Key="AmberColor">#B9790C</Color>
+    <Color x:Key="AmberTintColor">#FFF3DA</Color>
+
+    <SolidColorBrush x:Key="NavigationBrush" Color="{StaticResource NavigationColor}" />
+    <SolidColorBrush x:Key="NavigationHoverBrush" Color="{StaticResource NavigationHoverColor}" />
+    <SolidColorBrush x:Key="NavigationBorderBrush" Color="{StaticResource NavigationBorderColor}" />
+    <SolidColorBrush x:Key="BrandAccentBrush" Color="{StaticResource BrandAccentColor}" />
+    <SolidColorBrush x:Key="BrandLightBrush" Color="{StaticResource BrandLightColor}" />
+    <SolidColorBrush x:Key="PrimaryTextBrush" Color="{StaticResource PrimaryTextColor}" />
+    <SolidColorBrush x:Key="SecondaryTextBrush" Color="{StaticResource SecondaryTextColor}" />
+    <SolidColorBrush x:Key="MutedTextBrush" Color="{StaticResource MutedTextColor}" />
+    <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource AppBackgroundColor}" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="ContextBarBrush" Color="{StaticResource ContextBarColor}" />
+    <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerColor}" />
+    <SolidColorBrush x:Key="CardBorderBrush" Color="{StaticResource CardBorderColor}" />
+    <SolidColorBrush x:Key="BlueTintBrush" Color="{StaticResource BlueTintColor}" />
+    <SolidColorBrush x:Key="GreenBrush" Color="{StaticResource GreenColor}" />
+    <SolidColorBrush x:Key="GreenTintBrush" Color="{StaticResource GreenTintColor}" />
+    <SolidColorBrush x:Key="VioletBrush" Color="{StaticResource VioletColor}" />
+    <SolidColorBrush x:Key="VioletTintBrush" Color="{StaticResource VioletTintColor}" />
+    <SolidColorBrush x:Key="AmberBrush" Color="{StaticResource AmberColor}" />
+    <SolidColorBrush x:Key="AmberTintBrush" Color="{StaticResource AmberTintColor}" />
+</ResourceDictionary>
