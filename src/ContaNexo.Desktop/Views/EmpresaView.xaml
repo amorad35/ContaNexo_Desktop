@@ -73,65 +73,144 @@
                     <Grid Grid.Row="1"
                           Margin="0,18,0,0"
                           IsEnabled="{Binding FormularioHabilitado}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="190" />
+                            <ColumnDefinition Width="28" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Row="0" Grid.ColumnSpan="3">
+                        <StackPanel Grid.Column="0">
                             <TextBlock Style="{StaticResource FormLabelTextStyle}"
-                                       Text="Nombre de la empresa *" />
-                            <TextBox Style="{StaticResource FormTextBoxStyle}"
-                                     Text="{Binding NombreEmpresa, UpdateSourceTrigger=PropertyChanged}" />
+                                       Text="Logo" />
+                            <Border Height="150"
+                                    Background="{StaticResource AppBackgroundBrush}"
+                                    BorderBrush="{StaticResource DividerBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                                <Grid Margin="10">
+                                    <Image Source="{Binding LogoVistaPrevia}"
+                                           Stretch="Uniform">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding TieneVistaPrevia}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                    <TextBlock HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource MutedTextBrush}"
+                                               Text="{Binding TextoEstadoLogo}"
+                                               TextAlignment="Center"
+                                               TextWrapping="Wrap">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding TieneVistaPrevia}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                            </Border>
+
+                            <Button Margin="0,10,0,0"
+                                    Command="{Binding SeleccionarLogoCommand}"
+                                    Content="{Binding TextoSeleccionarLogo}"
+                                    Style="{StaticResource PrimaryActionButtonStyle}" />
+
+                            <Button Margin="0,8,0,0"
+                                    Command="{Binding QuitarLogoCommand}"
+                                    Content="Quitar logo">
+                                <Button.Style>
+                                    <Style BasedOn="{StaticResource SecondaryActionButtonStyle}"
+                                           TargetType="Button">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding TieneLogo}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
                         </StackPanel>
 
-                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,12,0,0">
-                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
-                                       Text="RUC" />
-                            <TextBox Style="{StaticResource FormTextBoxStyle}"
-                                     Text="{Binding RucEmpresa, UpdateSourceTrigger=PropertyChanged}" />
-                        </StackPanel>
+                        <Grid Grid.Column="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="24" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,12,0,0">
-                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
-                                       Text="Teléfono" />
-                            <TextBox Style="{StaticResource FormTextBoxStyle}"
-                                     Text="{Binding TelefonoEmpresa, UpdateSourceTrigger=PropertyChanged}" />
-                        </StackPanel>
+                            <StackPanel Grid.Row="0" Grid.ColumnSpan="3">
+                                <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                           Text="Nombre de la empresa *" />
+                                <TextBox Style="{StaticResource FormTextBoxStyle}"
+                                         Text="{Binding NombreEmpresa, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
 
-                        <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Margin="0,12,0,0">
-                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
-                                       Text="Dirección" />
-                            <TextBox Height="56"
-                                     AcceptsReturn="True"
-                                     Style="{StaticResource FormTextBoxStyle}"
-                                     Text="{Binding DireccionEmpresa, UpdateSourceTrigger=PropertyChanged}"
-                                     TextWrapping="Wrap"
-                                     VerticalContentAlignment="Top" />
-                        </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,12,0,0">
+                                <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                           Text="RUC" />
+                                <TextBox Style="{StaticResource FormTextBoxStyle}"
+                                         Text="{Binding RucEmpresa, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
 
-                        <StackPanel Grid.Row="3" Grid.ColumnSpan="3" Margin="0,12,0,0">
-                            <TextBlock Style="{StaticResource FormLabelTextStyle}"
-                                       Text="Correo electrónico" />
-                            <TextBox Style="{StaticResource FormTextBoxStyle}"
-                                     Text="{Binding CorreoEmpresa, UpdateSourceTrigger=PropertyChanged}" />
-                        </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,12,0,0">
+                                <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                           Text="Teléfono" />
+                                <TextBox Style="{StaticResource FormTextBoxStyle}"
+                                         Text="{Binding TelefonoEmpresa, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Margin="0,12,0,0">
+                                <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                           Text="Dirección" />
+                                <TextBox Height="56"
+                                         AcceptsReturn="True"
+                                         Style="{StaticResource FormTextBoxStyle}"
+                                         Text="{Binding DireccionEmpresa, UpdateSourceTrigger=PropertyChanged}"
+                                         TextWrapping="Wrap"
+                                         VerticalContentAlignment="Top" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="3" Grid.ColumnSpan="3" Margin="0,12,0,0">
+                                <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                           Text="Correo electrónico" />
+                                <TextBox Style="{StaticResource FormTextBoxStyle}"
+                                         Text="{Binding CorreoEmpresa, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </Grid>
                     </Grid>
 
-                    <Button Grid.Row="2"
-                            MinWidth="180"
-                            Margin="0,18,0,0"
-                            HorizontalAlignment="Right"
-                            Command="{Binding GuardarEmpresaCommand}"
-                            Content="{Binding TextoGuardar}"
-                            Style="{StaticResource PrimaryActionButtonStyle}" />
+                    <StackPanel Grid.Row="2"
+                                Margin="0,18,0,0"
+                                HorizontalAlignment="Right"
+                                Orientation="Horizontal">
+                        <Button MinWidth="165"
+                                Margin="0,0,10,0"
+                                Command="{Binding DeshacerCambiosCommand}"
+                                Content="Deshacer cambios"
+                                Style="{StaticResource SecondaryActionButtonStyle}" />
+                        <Button MinWidth="180"
+                                Command="{Binding GuardarEmpresaCommand}"
+                                Content="{Binding TextoGuardar}"
+                                Style="{StaticResource PrimaryActionButtonStyle}" />
+                    </StackPanel>
                 </Grid>
             </Border>
         </Grid>
