@@ -1,0 +1,679 @@
+<UserControl x:Class="ContaNexo.Desktop.Views.LibroDiarioView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="760"
+             d:DesignWidth="1400"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style x:Key="DiarioComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="MinHeight" Value="38" />
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style x:Key="DiarioDatePickerStyle" TargetType="DatePicker">
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="Padding" Value="10,7" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+        <Style x:Key="DiarioDataGridStyle" TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="False" />
+            <Setter Property="CanUserAddRows" Value="False" />
+            <Setter Property="CanUserDeleteRows" Value="False" />
+            <Setter Property="CanUserReorderColumns" Value="False" />
+            <Setter Property="CanUserResizeRows" Value="False" />
+            <Setter Property="CanUserSortColumns" Value="False" />
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+            <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="VerticalGridLinesBrush" Value="Transparent" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="RowHeaderWidth" Value="0" />
+            <Setter Property="RowHeight" Value="52" />
+            <Setter Property="SelectionMode" Value="Single" />
+            <Setter Property="SelectionUnit" Value="CellOrRowHeader" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+
+        <Style x:Key="DiarioColumnHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Background" Value="{StaticResource ContextBarBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="DiarioCellStyle" TargetType="DataGridCell">
+            <Setter Property="Padding" Value="7,5" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        </Style>
+
+        <Style x:Key="DiarioRowStyle" TargetType="DataGridRow">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource ContextBarBrush}" />
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{StaticResource BlueTintBrush}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ImporteTextBoxStyle"
+               BasedOn="{StaticResource FormTextBoxStyle}"
+               TargetType="TextBox">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="TextAlignment" Value="Right" />
+        </Style>
+
+        <Style x:Key="EliminarLineaButtonStyle"
+               BasedOn="{StaticResource SecondaryActionButtonStyle}"
+               TargetType="Button">
+            <Setter Property="MinWidth" Value="34" />
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
+            <Setter Property="FontSize" Value="17" />
+        </Style>
+
+        <Style x:Key="PanelCargaCuentasStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EstaCargandoCuentas}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="CapturaAsientoPanelStyle"
+               BasedOn="{StaticResource PanelCardStyle}"
+               TargetType="Border">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding PeriodoActivoAbierto}" Value="False">
+                    <Setter Property="IsEnabled" Value="False" />
+                    <Setter Property="Opacity" Value="0.72" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ResumenCardStyle" TargetType="Border">
+            <Setter Property="Margin" Value="0,0,10,0" />
+            <Setter Property="Padding" Value="14,11" />
+            <Setter Property="Background" Value="{StaticResource ContextBarBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="9" />
+        </Style>
+
+        <Style x:Key="EstadoCuadraturaBorderStyle"
+               BasedOn="{StaticResource ResumenCardStyle}"
+               TargetType="Border">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Background" Value="{StaticResource AmberTintBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AmberBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EstaCuadrado}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GreenTintBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource GreenBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="EstadoCuadraturaTextStyle" TargetType="TextBlock">
+            <Setter Property="Text" Value="Pendiente de cuadrar" />
+            <Setter Property="Foreground" Value="{StaticResource AmberBrush}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EstaCuadrado}" Value="True">
+                    <Setter Property="Text" Value="Asiento cuadrado" />
+                    <Setter Property="Foreground" Value="{StaticResource GreenBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PeriodoEstadoBorderStyle" TargetType="Border">
+            <Setter Property="Padding" Value="9,3" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Background" Value="{StaticResource ContextBarBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="11" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding PeriodoActivoAbierto}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GreenTintBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource GreenBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PeriodoEstadoTextStyle" TargetType="TextBlock">
+            <Setter Property="Text" Value="Sin período activo" />
+            <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding TienePeriodoActivo}" Value="True">
+                    <Setter Property="Text" Value="{Binding EstadoPeriodoActivo}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding PeriodoActivoAbierto}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource GreenBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PeriodoRangoFechasStyle" TargetType="StackPanel">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding TienePeriodoActivo}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PasoNumeroStyle" TargetType="Border">
+            <Setter Property="Width" Value="26" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="Margin" Value="0,0,10,0" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Background" Value="{StaticResource BlueTintBrush}" />
+            <Setter Property="CornerRadius" Value="13" />
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer HorizontalContentAlignment="Stretch"
+                  HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto">
+        <StackPanel MaxWidth="1660"
+                    MinWidth="840"
+                    Margin="40,24,40,44"
+                    HorizontalAlignment="Center">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock FontSize="12"
+                           Foreground="{StaticResource MutedTextBrush}"
+                           Text="Inicio" />
+                <TextBlock Margin="7,0"
+                           FontSize="12"
+                           Foreground="{StaticResource MutedTextBrush}"
+                           Text="›" />
+                <TextBlock FontSize="12"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource BrandAccentBrush}"
+                           Text="Libro Diario" />
+            </StackPanel>
+
+            <Grid Margin="0,10,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Style="{StaticResource EyebrowTextStyle}"
+                               Text="OPERACIONES CONTABLES" />
+                    <TextBlock Style="{StaticResource PageTitleTextStyle}"
+                               Text="Libro Diario" />
+                    <TextBlock MaxWidth="760"
+                               Margin="0,7,0,0"
+                               HorizontalAlignment="Left"
+                               Style="{StaticResource BodyTextStyle}"
+                               Text="Registra un asiento formal con sus movimientos de Debe y Haber dentro del período contable activo." />
+                </StackPanel>
+
+                <Border Grid.Column="1"
+                        MinWidth="285"
+                        Margin="28,0,0,0"
+                        Padding="16,12"
+                        VerticalAlignment="Center"
+                        Background="{StaticResource SurfaceBrush}"
+                        BorderBrush="{StaticResource CardBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="11">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource ContextLabelTextStyle}"
+                                       Text="PERÍODO ACTIVO" />
+                            <TextBlock Margin="0,4,0,0"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Text="{Binding NombrePeriodoActivo}"
+                                       TextTrimming="CharacterEllipsis" />
+                            <StackPanel Margin="0,5,0,0"
+                                        Orientation="Horizontal"
+                                        Style="{StaticResource PeriodoRangoFechasStyle}">
+                                <TextBlock FontSize="12"
+                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                           Text="{Binding FechaInicioPeriodoActivo, StringFormat={}{0:dd/MM/yyyy}}" />
+                                <TextBlock Margin="5,0"
+                                           FontSize="12"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           Text="—" />
+                                <TextBlock FontSize="12"
+                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                           Text="{Binding FechaFinPeriodoActivo, StringFormat={}{0:dd/MM/yyyy}}" />
+                            </StackPanel>
+                        </StackPanel>
+                        <Border Grid.Column="1"
+                                Margin="16,0,0,0"
+                                Style="{StaticResource PeriodoEstadoBorderStyle}">
+                            <TextBlock Style="{StaticResource PeriodoEstadoTextStyle}" />
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <TextBlock Margin="0,16,0,0"
+                       Style="{StaticResource ErrorFeedbackTextStyle}"
+                       Text="{Binding MensajeError}" />
+            <TextBlock Margin="0,16,0,0"
+                       Style="{StaticResource SuccessFeedbackTextStyle}"
+                       Text="{Binding MensajeExito}" />
+
+            <Grid Margin="0,4,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" MinWidth="590" />
+                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition Width="1*" MinWidth="230" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0"
+                        Padding="20,18"
+                        Style="{StaticResource CapturaAsientoPanelStyle}">
+                    <Grid IsEnabled="{Binding FormularioHabilitado}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                                           Text="Nuevo asiento" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Style="{StaticResource BodyTextStyle}"
+                                           Text="Completa el encabezado y registra al menos dos movimientos." />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1"
+                                       Margin="20,0,0,0"
+                                       VerticalAlignment="Center"
+                                       FontSize="12"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       Text="N.º generado automáticamente al guardar" />
+                        </Grid>
+
+                        <Grid Grid.Row="1" Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="14" />
+                                <ColumnDefinition Width="145" />
+                                <ColumnDefinition Width="14" />
+                                <ColumnDefinition Width="*" MinWidth="180" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                           Text="Fecha" />
+                                <DatePicker SelectedDate="{Binding FechaAsiento, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            SelectedDateFormat="Short"
+                                            Style="{StaticResource DiarioDatePickerStyle}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                           Text="Tipo" />
+                                <ComboBox ItemsSource="{Binding TiposAsiento}"
+                                          SelectedItem="{Binding TipoAsiento, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          Style="{StaticResource DiarioComboBoxStyle}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                           Text="Descripción / concepto (opcional)" />
+                                <TextBox MaxLength="500"
+                                         Style="{StaticResource FormTextBoxStyle}"
+                                         Text="{Binding DescripcionAsiento, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Grid.Row="2"
+                                Height="1"
+                                Margin="0,18,0,14"
+                                Background="{StaticResource DividerBrush}" />
+
+                        <Grid Grid.Row="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock FontSize="17"
+                                           FontWeight="SemiBold"
+                                           Text="Movimientos" />
+                                <TextBlock Margin="0,3,0,0"
+                                           FontSize="12"
+                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                           Text="Selecciona una cuenta y registra el importe únicamente en Debe o Haber." />
+                            </StackPanel>
+                            <Border Grid.Column="1"
+                                    Margin="16,0,0,0"
+                                    Padding="12,7"
+                                    VerticalAlignment="Center"
+                                    Background="{StaticResource BlueTintBrush}"
+                                    BorderBrush="{StaticResource DividerBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Style="{StaticResource PanelCargaCuentasStyle}">
+                                <TextBlock FontSize="12"
+                                           Foreground="{StaticResource BrandAccentBrush}"
+                                           Text="Cargando cuentas..." />
+                            </Border>
+                        </Grid>
+
+                        <DataGrid Grid.Row="4"
+                                  Height="250"
+                                  Margin="0,12,0,0"
+                                  CellStyle="{StaticResource DiarioCellStyle}"
+                                  ColumnHeaderStyle="{StaticResource DiarioColumnHeaderStyle}"
+                                  ItemsSource="{Binding Lineas}"
+                                  RowStyle="{StaticResource DiarioRowStyle}"
+                                  Style="{StaticResource DiarioDataGridStyle}">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Width="*" MinWidth="250" Header="CUENTA">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox IsTextSearchEnabled="True"
+                                                      ItemsSource="{Binding DataContext.CuentasMovimiento, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                                                      MaxDropDownHeight="300"
+                                                      SelectedItem="{Binding CuentaSeleccionada, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      Style="{StaticResource DiarioComboBoxStyle}"
+                                                      TextSearch.TextPath="NombreCuenta">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="2">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock MinWidth="58"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="{StaticResource BrandAccentBrush}"
+                                                                       Text="{Binding CodigoCuenta}" />
+                                                            <TextBlock Grid.Column="1"
+                                                                       Margin="8,0,0,0"
+                                                                       Text="{Binding NombreCuenta}"
+                                                                       TextTrimming="CharacterEllipsis" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <DataGridTemplateColumn Width="125" Header="DEBE">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBox Style="{StaticResource ImporteTextBoxStyle}"
+                                                     Text="{Binding Debe, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <DataGridTemplateColumn Width="125" Header="HABER">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBox Style="{StaticResource ImporteTextBoxStyle}"
+                                                     Text="{Binding Haber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <DataGridTemplateColumn Width="58" Header="">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button HorizontalAlignment="Center"
+                                                    Command="{Binding DataContext.EliminarLineaCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="×"
+                                                    Style="{StaticResource EliminarLineaButtonStyle}"
+                                                    ToolTip="Eliminar línea" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <Button Grid.Row="5"
+                                Margin="0,10,0,0"
+                                HorizontalAlignment="Left"
+                                Command="{Binding AgregarLineaCommand}"
+                                Content="＋  Agregar línea"
+                                Style="{StaticResource SecondaryActionButtonStyle}" />
+
+                        <Grid Grid.Row="6" Margin="0,18,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <UniformGrid Grid.Row="0" Columns="4">
+                                <Border Style="{StaticResource ResumenCardStyle}">
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource ContextLabelTextStyle}"
+                                                   Text="TOTAL DEBE" />
+                                        <TextBlock Margin="0,4,0,0"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding TotalDebe, StringFormat={}{0:N2}}" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource ResumenCardStyle}">
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource ContextLabelTextStyle}"
+                                                   Text="TOTAL HABER" />
+                                        <TextBlock Margin="0,4,0,0"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding TotalHaber, StringFormat={}{0:N2}}" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource ResumenCardStyle}">
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource ContextLabelTextStyle}"
+                                                   Text="DIFERENCIA" />
+                                        <TextBlock Margin="0,4,0,0"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding Diferencia, StringFormat={}{0:N2}}" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource EstadoCuadraturaBorderStyle}">
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource ContextLabelTextStyle}"
+                                                   Text="ESTADO" />
+                                        <TextBlock Margin="0,5,0,0"
+                                                   Style="{StaticResource EstadoCuadraturaTextStyle}" />
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+
+                            <Grid Grid.Row="1" Margin="0,16,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock VerticalAlignment="Center"
+                                           FontSize="12"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           Text="El asiento se registrará con estado Registrado." />
+                                <Button Grid.Column="1"
+                                        MinWidth="154"
+                                        Margin="20,0,0,0"
+                                        Command="{Binding GuardarCommand}"
+                                        Content="{Binding TextoGuardar}"
+                                        Style="{StaticResource PrimaryActionButtonStyle}" />
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Column="2"
+                        Padding="20,18"
+                        VerticalAlignment="Top"
+                        Style="{StaticResource PanelCardStyle}">
+                    <StackPanel>
+                        <Border Width="42"
+                                Height="42"
+                                HorizontalAlignment="Left"
+                                Background="{StaticResource BlueTintBrush}"
+                                CornerRadius="11">
+                            <TextBlock HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       FontSize="14"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource BrandAccentBrush}"
+                                       Text="LD" />
+                        </Border>
+                        <TextBlock Margin="0,14,0,0"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Text="Cómo funciona" />
+                        <TextBlock Margin="0,5,0,0"
+                                   Style="{StaticResource BodyTextStyle}"
+                                   Text="Registra el asiento siguiendo el orden contable formal." />
+
+                        <StackPanel Margin="0,18,0,0">
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource PasoNumeroStyle}">
+                                    <TextBlock Style="{StaticResource StepNumberTextStyle}" Text="1" />
+                                </Border>
+                                <TextBlock Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource BodyTextStyle}"
+                                           Text="Selecciona un período contable abierto." />
+                            </Grid>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource PasoNumeroStyle}">
+                                    <TextBlock Style="{StaticResource StepNumberTextStyle}" Text="2" />
+                                </Border>
+                                <TextBlock Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource BodyTextStyle}"
+                                           Text="Elige la fecha y el tipo de asiento." />
+                            </Grid>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource PasoNumeroStyle}">
+                                    <TextBlock Style="{StaticResource StepNumberTextStyle}" Text="3" />
+                                </Border>
+                                <TextBlock Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource BodyTextStyle}"
+                                           Text="Selecciona una cuenta en cada línea." />
+                            </Grid>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource PasoNumeroStyle}">
+                                    <TextBlock Style="{StaticResource StepNumberTextStyle}" Text="4" />
+                                </Border>
+                                <TextBlock Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource BodyTextStyle}"
+                                           Text="Registra el valor en Debe o Haber." />
+                            </Grid>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource PasoNumeroStyle}">
+                                    <TextBlock Style="{StaticResource StepNumberTextStyle}" Text="5" />
+                                </Border>
+                                <TextBlock Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource BodyTextStyle}"
+                                           Text="Verifica que los totales sean iguales." />
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource PasoNumeroStyle}">
+                                    <TextBlock Style="{StaticResource StepNumberTextStyle}" Text="6" />
+                                </Border>
+                                <TextBlock Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource BodyTextStyle}"
+                                           Text="Guarda el asiento." />
+                            </Grid>
+                        </StackPanel>
+
+                        <Border Margin="0,20,0,0"
+                                Padding="14,11"
+                                Background="{StaticResource BlueTintBrush}"
+                                BorderBrush="{StaticResource BrandAccentBrush}"
+                                BorderThickness="1"
+                                CornerRadius="9">
+                            <TextBlock FontSize="12"
+                                       Foreground="{StaticResource SecondaryTextBrush}"
+                                       Text="El número del asiento se genera automáticamente y se comparte entre Normal y Ajuste."
+                                       TextWrapping="Wrap" />
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

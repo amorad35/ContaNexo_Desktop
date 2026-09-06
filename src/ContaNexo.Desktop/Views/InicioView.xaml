@@ -121,7 +121,12 @@
                     </Grid>
                 </Border>
 
-                <Border Style="{StaticResource ModuleCardStyle}">
+                <Border Cursor="Hand"
+                        Style="{StaticResource ModuleCardStyle}">
+                    <Border.InputBindings>
+                        <MouseBinding Command="{Binding NavegarLibroDiarioCommand}"
+                                      MouseAction="LeftClick" />
+                    </Border.InputBindings>
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />

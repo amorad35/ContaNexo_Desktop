@@ -10,6 +10,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private readonly EmpresaViewModel _empresaViewModel;
     private readonly PeriodoContableViewModel _periodoContableViewModel;
     private readonly CatalogoCuentasViewModel _catalogoCuentasViewModel;
+    private readonly LibroDiarioViewModel _libroDiarioViewModel;
     private ViewModelBase _vistaActual;
     private Empresa? _empresaActiva;
     private PeriodoContableListado? _periodoActivo;
@@ -18,10 +19,17 @@ public sealed class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel(
         RepositorioEmpresa repositorioEmpresa,
         RepositorioPeriodoContable repositorioPeriodoContable,
-        RepositorioCuentaContable repositorioCuentaContable)
+        RepositorioCuentaContable repositorioCuentaContable,
+        RepositorioAsiento repositorioAsiento)
     {
         _catalogoCuentasViewModel = new CatalogoCuentasViewModel(repositorioCuentaContable);
-        _inicioViewModel = new InicioViewModel(NavegarACatalogoAsync);
+        _libroDiarioViewModel = new LibroDiarioViewModel(
+            repositorioCuentaContable,
+            repositorioAsiento,
+            () => PeriodoActivo);
+        _inicioViewModel = new InicioViewModel(
+            NavegarACatalogoAsync,
+            NavegarALibroDiarioAsync);
         _empresaViewModel = new EmpresaViewModel(repositorioEmpresa, EstablecerEmpresaActiva);
         _periodoContableViewModel = new PeriodoContableViewModel(
             repositorioPeriodoContable,
@@ -99,6 +107,12 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         VistaActual = _catalogoCuentasViewModel;
         await _catalogoCuentasViewModel.CargarAsync();
+    }
+
+    private async Task NavegarALibroDiarioAsync()
+    {
+        VistaActual = _libroDiarioViewModel;
+        await _libroDiarioViewModel.CargarAsync();
     }
 
     private async Task NavegarAEmpresaAsync()

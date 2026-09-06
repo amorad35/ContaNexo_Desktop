@@ -22,6 +22,9 @@
             <DataTemplate DataType="{x:Type viewModels:CatalogoCuentasViewModel}">
                 <views:CatalogoCuentasView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:LibroDiarioViewModel}">
+                <views:LibroDiarioView />
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
