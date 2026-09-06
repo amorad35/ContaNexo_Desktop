@@ -95,6 +95,60 @@ public class RepositorioCuentaContable
                 parametros,
                 commandType: CommandType.StoredProcedure);
         }
+        catch (SqlException excepcion) when (excepcion.Number == 52101)
+        {
+            throw new InvalidOperationException(
+                "El código de la cuenta es obligatorio.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52102)
+        {
+            throw new InvalidOperationException(
+                "El nombre de la cuenta es obligatorio.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52103)
+        {
+            throw new InvalidOperationException(
+                "El orden de la cuenta debe ser un entero mayor que cero.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52104)
+        {
+            throw new InvalidOperationException(
+                "La naturaleza debe ser Deudora o Acreedora.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number is 52105 or 52106)
+        {
+            throw new InvalidOperationException(
+                "Los datos de estado o movimiento de la cuenta no son válidos.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52107)
+        {
+            throw new InvalidOperationException(
+                "El grupo contable seleccionado no existe o está inactivo.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52108)
+        {
+            throw new InvalidOperationException(
+                "Ya existe una cuenta con el código indicado.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52109)
+        {
+            throw new InvalidOperationException(
+                "La cuenta padre seleccionada ya no existe.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52110)
+        {
+            throw new InvalidOperationException(
+                "La cuenta padre debe pertenecer al mismo grupo contable.",
+                excepcion);
+        }
         catch (SqlException excepcion)
         {
             throw new InvalidOperationException(
@@ -123,6 +177,78 @@ public class RepositorioCuentaContable
                 parametros,
                 commandType: CommandType.StoredProcedure);
         }
+        catch (SqlException excepcion) when (excepcion.Number == 52201)
+        {
+            throw new InvalidOperationException(
+                "La cuenta que intentas actualizar ya no existe.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52202)
+        {
+            throw new InvalidOperationException(
+                "El código de la cuenta es obligatorio.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52203)
+        {
+            throw new InvalidOperationException(
+                "El nombre de la cuenta es obligatorio.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52204)
+        {
+            throw new InvalidOperationException(
+                "El orden actual de la cuenta no es válido.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52205)
+        {
+            throw new InvalidOperationException(
+                "La naturaleza debe ser Deudora o Acreedora.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52206)
+        {
+            throw new InvalidOperationException(
+                "El grupo contable seleccionado no existe o está inactivo.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52207)
+        {
+            throw new InvalidOperationException(
+                "Ya existe otra cuenta con el código indicado.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52208)
+        {
+            throw new InvalidOperationException(
+                "Una cuenta no puede ser su propia cuenta padre.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52209)
+        {
+            throw new InvalidOperationException(
+                "La cuenta padre seleccionada ya no existe.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52210)
+        {
+            throw new InvalidOperationException(
+                "La cuenta debe pertenecer al mismo grupo que su padre.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52211)
+        {
+            throw new InvalidOperationException(
+                "La cuenta padre seleccionada produciría un ciclo jerárquico.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52212)
+        {
+            throw new InvalidOperationException(
+                "No se puede cambiar el grupo porque una o más cuentas hijas quedarían en otro grupo.",
+                excepcion);
+        }
         catch (SqlException excepcion)
         {
             throw new InvalidOperationException(
@@ -148,6 +274,18 @@ public class RepositorioCuentaContable
                 parametros,
                 commandType: CommandType.StoredProcedure);
         }
+        catch (SqlException excepcion) when (excepcion.Number == 52301)
+        {
+            throw new InvalidOperationException(
+                "El valor indicado para configurar el movimiento no es válido.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52302)
+        {
+            throw new InvalidOperationException(
+                "La cuenta cuya configuración de movimiento intentas cambiar ya no existe.",
+                excepcion);
+        }
         catch (SqlException excepcion)
         {
             throw new InvalidOperationException(
@@ -170,6 +308,18 @@ public class RepositorioCuentaContable
                 "SP_CuentaContable_CambiarEstado",
                 parametros,
                 commandType: CommandType.StoredProcedure);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52401)
+        {
+            throw new InvalidOperationException(
+                "El estado indicado para la cuenta no es válido.",
+                excepcion);
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52402)
+        {
+            throw new InvalidOperationException(
+                "La cuenta cuyo estado intentas cambiar ya no existe.",
+                excepcion);
         }
         catch (SqlException excepcion)
         {

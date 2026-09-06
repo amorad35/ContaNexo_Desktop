@@ -247,6 +247,24 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+
+        <Style x:Key="FormularioCuentaStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding MostrarFormulario}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SelectorPadreStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EsSubcuenta}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
 
     <ScrollViewer HorizontalContentAlignment="Stretch"
@@ -289,12 +307,206 @@
                                        Style="{StaticResource BodyTextStyle}"
                                        Text="Busca y filtra localmente sin modificar el catálogo." />
                         </StackPanel>
-                        <TextBlock Grid.Column="1"
-                                   Margin="24,0,0,0"
-                                   VerticalAlignment="Bottom"
-                                   Style="{StaticResource ContextValueTextStyle}"
-                                   Text="{Binding ResumenResultados}" />
+                        <StackPanel Grid.Column="1"
+                                    Margin="24,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                            <TextBlock Margin="0,0,18,0"
+                                       VerticalAlignment="Center"
+                                       Style="{StaticResource ContextValueTextStyle}"
+                                       Text="{Binding ResumenResultados}" />
+                            <Button MinWidth="124"
+                                    MinHeight="38"
+                                    Padding="15,8"
+                                    Command="{Binding NuevaCuentaCommand}"
+                                    Content="Nueva cuenta"
+                                    Style="{StaticResource PrimaryActionButtonStyle}" />
+                        </StackPanel>
                     </Grid>
+
+                    <Border Margin="0,14,0,0"
+                            Padding="16,14"
+                            Background="{StaticResource ContextBarBrush}"
+                            BorderBrush="{StaticResource DividerBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            IsEnabled="{Binding FormularioHabilitado}"
+                            Style="{StaticResource FormularioCuentaStyle}">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock FontSize="17"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding TituloFormulario}" />
+                                    <TextBlock Margin="0,3,0,0"
+                                               Style="{StaticResource BodyTextStyle}"
+                                               Text="{Binding DescripcionFormulario}" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="1"
+                                           Margin="20,0,0,0"
+                                           VerticalAlignment="Center"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           FontSize="12"
+                                           Text="* Campos obligatorios" />
+                            </Grid>
+
+                            <TextBlock Margin="0,12,0,0"
+                                       Style="{StaticResource ErrorFeedbackTextStyle}"
+                                       Text="{Binding MensajeErrorFormulario}" />
+
+                            <Grid Margin="0,2,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="0.75*" MinWidth="105" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="1.5*" MinWidth="180" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="1.35*" MinWidth="170" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="1.15*" MinWidth="145" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                               Text="Código *" />
+                                    <TextBox MaxLength="20"
+                                             IsReadOnly="{Binding EsSubcuenta}"
+                                             Style="{StaticResource BuscadorCompactoStyle}"
+                                             Text="{Binding CodigoCuenta, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="En subcuentas se genera automáticamente al seleccionar la cuenta padre" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                               Text="Nombre *" />
+                                    <TextBox MaxLength="150"
+                                             Style="{StaticResource BuscadorCompactoStyle}"
+                                             Text="{Binding NombreCuenta, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                               Text="Grupo *" />
+                                    <ComboBox DisplayMemberPath="Texto"
+                                              ItemsSource="{Binding GruposCreacion}"
+                                              MaxDropDownHeight="280"
+                                              SelectedItem="{Binding GrupoCreacionSeleccionado, Mode=TwoWay}"
+                                              Style="{StaticResource FiltroComboBoxStyle}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="6">
+                                    <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                               Text="Elemento" />
+                                    <Border MinHeight="36"
+                                            Padding="10,5"
+                                            Background="{StaticResource SurfaceBrush}"
+                                            BorderBrush="{StaticResource DividerBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="2">
+                                        <TextBlock VerticalAlignment="Center"
+                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                   Text="{Binding ElementoCreacionTexto}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.2*" MinWidth="150" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="1*" MinWidth="125" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="1.25*" MinWidth="155" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                               Text="Tipo de cuenta *" />
+                                    <ComboBox DisplayMemberPath="Nombre"
+                                              ItemsSource="{Binding TiposCuenta}"
+                                              SelectedItem="{Binding TipoCuentaSeleccionado, Mode=TwoWay}"
+                                              Style="{StaticResource FiltroComboBoxStyle}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                               Text="Naturaleza *" />
+                                    <ComboBox ItemsSource="{Binding Naturalezas}"
+                                              SelectedItem="{Binding NaturalezaSeleccionada, Mode=TwoWay}"
+                                              Style="{StaticResource FiltroComboBoxStyle}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Style="{StaticResource FormLabelTextStyle}"
+                                               Text="Movimiento" />
+                                    <Border MinHeight="36"
+                                            Padding="10,5"
+                                            Background="{StaticResource SurfaceBrush}"
+                                            BorderBrush="{StaticResource DividerBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="2">
+                                        <CheckBox VerticalAlignment="Center"
+                                                  Content="Permite movimientos"
+                                                  IsEnabled="{Binding PuedeEditarMovimientoEnFormulario}"
+                                                  IsChecked="{Binding PermiteMovimiento, Mode=TwoWay}" />
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+
+                            <Border Margin="0,12,0,0"
+                                    Padding="12,10"
+                                    Background="{StaticResource SurfaceBrush}"
+                                    BorderBrush="{StaticResource DividerBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Style="{StaticResource SelectorPadreStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="12" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center"
+                                               Style="{StaticResource FormLabelTextStyle}"
+                                               Text="Cuenta padre *" />
+                                    <ComboBox Grid.Column="2"
+                                              DisplayMemberPath="Texto"
+                                              IsEnabled="{Binding PuedeSeleccionarCuentaPadre}"
+                                              ItemsSource="{Binding CuentasPadre}"
+                                              MaxDropDownHeight="280"
+                                              SelectedItem="{Binding CuentaPadreSeleccionada, Mode=TwoWay}"
+                                              Style="{StaticResource FiltroComboBoxStyle}"
+                                              ToolTip="Solo se muestran cuentas del grupo seleccionado" />
+                                </Grid>
+                            </Border>
+
+                            <StackPanel Margin="0,14,0,0"
+                                        HorizontalAlignment="Right"
+                                        Orientation="Horizontal">
+                                <Button MinWidth="100"
+                                        MinHeight="36"
+                                        Padding="14,7"
+                                        Command="{Binding CancelarCreacionCommand}"
+                                        Content="Cancelar"
+                                        Style="{StaticResource SecondaryActionButtonStyle}" />
+                                <Button MinWidth="110"
+                                        MinHeight="36"
+                                        Margin="9,0,0,0"
+                                        Padding="14,7"
+                                        Command="{Binding GuardarCuentaCommand}"
+                                        Content="{Binding TextoGuardar}"
+                                        Style="{StaticResource PrimaryActionButtonStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Margin="0,12,0,0"
+                               Style="{StaticResource SuccessFeedbackTextStyle}"
+                               Text="{Binding MensajeExito}" />
 
                     <Grid Margin="0,14,0,0"
                           IsEnabled="{Binding FiltrosHabilitados}">
@@ -481,11 +693,44 @@
                     Padding="20,16"
                     Style="{StaticResource PanelCardStyle}">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionTitleTextStyle}"
-                               Text="Cuenta seleccionada" />
-                    <TextBlock Margin="0,4,0,0"
-                               Style="{StaticResource BodyTextStyle}"
-                               Text="Consulta la identificación, clasificación y ficha educativa de una cuenta." />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                                       Text="Cuenta seleccionada" />
+                            <TextBlock Margin="0,4,0,0"
+                                       Style="{StaticResource BodyTextStyle}"
+                                       Text="Consulta la identificación, clasificación y ficha educativa de una cuenta." />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1"
+                                    Margin="20,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                            <Button MinWidth="108"
+                                    MinHeight="34"
+                                    Padding="12,6"
+                                    Command="{Binding EditarCuentaCommand}"
+                                    Content="Editar cuenta"
+                                    Style="{StaticResource SecondaryActionButtonStyle}" />
+                            <Button MinWidth="92"
+                                    MinHeight="34"
+                                    Margin="8,0,0,0"
+                                    Padding="12,6"
+                                    Command="{Binding CambiarEstadoCommand}"
+                                    Content="{Binding TextoAccionEstado}"
+                                    Style="{StaticResource SecondaryActionButtonStyle}" />
+                            <Button MinWidth="150"
+                                    MinHeight="34"
+                                    Margin="8,0,0,0"
+                                    Padding="12,6"
+                                    Command="{Binding ConfigurarMovimientoCommand}"
+                                    Content="{Binding TextoAccionMovimiento}"
+                                    Style="{StaticResource SecondaryActionButtonStyle}" />
+                        </StackPanel>
+                    </Grid>
 
                     <Border Margin="0,14,0,0"
                             Padding="20"
