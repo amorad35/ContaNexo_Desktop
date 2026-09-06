@@ -18,7 +18,7 @@ Las claves foráneas no usan eliminación en cascada: así se evita borrar accid
 
 1. `Database/ContaNexoDB.sql` crea desde cero `ContaNexoDB`, sus ocho tablas, claves, restricciones, índices, cinco elementos y once grupos.
 2. `Database/SeedCatalogoCuentas.sql` carga el catálogo oficial sobre una `ContaNexoDB` recién creada. Inserta 90 cuentas y 69 detalles educativos.
-3. `Database/StoredProcedures.sql` crea o actualiza los procedimientos almacenados del módulo `CuentaContable`.
+3. `Database/StoredProcedures.sql` crea o actualiza los procedimientos almacenados de Empresa, Cuenta Contable, Período Contable y el contrato de creación atómica de Asiento.
 
 Los scripts de datos obtienen las relaciones por códigos y no dependen de valores `IDENTITY` predeterminados. El seed usa `XACT_ABORT`, `TRY/CATCH` y una transacción; si `CuentaContable` o `DetalleCuenta` ya contienen datos se detiene sin borrar, combinar ni sobrescribir información.
 
@@ -74,16 +74,23 @@ La desactivación automática de una padre ocurre solo al pasar de cero a una hi
 - `SP_PeriodoContable_Actualizar`: modifica nombre y fechas únicamente mientras el período esté abierto.
 - `SP_PeriodoContable_Cerrar`: cambia un período abierto a cerrado y registra la fecha de cierre.
 
+### Asiento
+
+- `DetalleAsientoCreacionTipo`: tipo de tabla utilizado para enviar todas las líneas de un asiento como una sola solicitud.
+- `SP_Asiento_Crear`: valida el período, la fecha, el tipo, las cuentas, los importes, el orden y el balance; genera un número consecutivo por período e inserta el encabezado y todos sus detalles dentro de una única transacción. Todo asiento creado por esta operación se guarda con estado `Registrado`.
+
+Este bloque prepara únicamente el contrato de creación atómica. Todavía no existen repositorio Dapper, consultas del Libro Diario, modificación, anulación ni interfaz de usuario.
+
 ContaNexo implementa actualmente solo el modo contable formal. Una empresa puede tener varios períodos, pero sus rangos de fechas son inclusivos y no pueden solaparse total ni parcialmente, incluso si un período ya está cerrado. Los períodos consecutivos sí están permitidos; por ejemplo, un período que termina el 31 de enero puede ser seguido por otro que inicia el 1 de febrero.
 
 Los períodos cerrados se conservan como historial y por ahora no existe reapertura. El modo de Actividades o Prácticas, incluidos posibles períodos académicos repetibles, queda como ampliación futura separada de `PeriodoContable`.
 
-El cierre actual implementa únicamente el cambio básico de estado y la fecha de cierre. Las validaciones contables previas relacionadas con Libro Diario, asientos cuadrados, Libro Mayor, Balance de Sumas y Saldos, Estado de Resultados y Balance General se incorporarán cuando existan esos módulos.
+El cierre actual implementa únicamente el cambio básico de estado y la fecha de cierre. `SP_Asiento_Crear` valida los nuevos asientos, pero las validaciones de cierre relacionadas con Libro Diario, Libro Mayor, Balance de Sumas y Saldos, Estado de Resultados y Balance General se incorporarán cuando existan esos módulos.
 
 ## Decisiones y pendientes del esquema
 
 - `estadoAsiento` queda como `VARCHAR(10) NOT NULL`, pero sin restricción `CHECK`: todavía no se han definido sus valores permitidos.
-- El equilibrio `SUM(debeDetalle) = SUM(haberDetalle)` se validará posteriormente en la aplicación antes de confirmar el asiento.
+- `SP_Asiento_Crear` valida el equilibrio `SUM(debeDetalle) = SUM(haberDetalle)` antes de insertar. La restricción no está expresada en las tablas y por ello la escritura oficial debe realizarse mediante este procedimiento.
 - El seed comprueba que cada hija tenga un padre del mismo grupo, aunque el esquema no impone esa regla mediante una restricción entre tablas.
 
 ## Registro histórico de discrepancias del catálogo

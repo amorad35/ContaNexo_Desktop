@@ -47,6 +47,8 @@ IF OBJECT_ID(N'dbo.CuentaContable', N'U') IS NULL
    OR OBJECT_ID(N'dbo.DetalleCuenta', N'U') IS NULL
    OR OBJECT_ID(N'dbo.Empresa', N'U') IS NULL
    OR OBJECT_ID(N'dbo.PeriodoContable', N'U') IS NULL
+   OR OBJECT_ID(N'dbo.Asiento', N'U') IS NULL
+   OR OBJECT_ID(N'dbo.DetalleAsiento', N'U') IS NULL
 BEGIN
     RAISERROR(
         'Faltan las tablas requeridas para los procedimientos almacenados.',
@@ -59,6 +61,21 @@ GO
 
 SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
+GO
+
+IF TYPE_ID(N'dbo.DetalleAsientoCreacionTipo') IS NULL
+BEGIN
+    EXEC
+    (
+        N'CREATE TYPE dbo.DetalleAsientoCreacionTipo AS TABLE
+        (
+            idCuentaContable INT NOT NULL,
+            debeDetalle DECIMAL(18,2) NOT NULL,
+            haberDetalle DECIMAL(18,2) NOT NULL,
+            ordenDetalle SMALLINT NOT NULL
+        );'
+    );
+END;
 GO
 
 /* PROCEDIMIENTOS DE EMPRESA */
@@ -671,6 +688,188 @@ BEGIN
             THROW 52402, 'La cuenta contable indicada no existe.', 1;
     END TRY
     BEGIN CATCH
+        THROW;
+    END CATCH;
+END;
+GO
+
+/* PROCEDIMIENTOS DE ASIENTO */
+
+CREATE OR ALTER PROCEDURE dbo.SP_Asiento_Crear
+    @idPeriodoContable INT,
+    @fechaAsiento DATE,
+    @tipoAsiento VARCHAR(10),
+    @descripcionAsiento NVARCHAR(500) = NULL,
+    @detalles dbo.DetalleAsientoCreacionTipo READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    DECLARE @fechaInicioPeriodo DATE;
+    DECLARE @fechaFinPeriodo DATE;
+    DECLARE @estadoPeriodo VARCHAR(10);
+    DECLARE @tipoNormalizado VARCHAR(10) = LTRIM(RTRIM(@tipoAsiento));
+    DECLARE @descripcionNormalizada NVARCHAR(500) =
+        NULLIF(LTRIM(RTRIM(@descripcionAsiento)), N'');
+    DECLARE @totalDebe DECIMAL(38,2);
+    DECLARE @totalHaber DECIMAL(38,2);
+    DECLARE @ultimoNumeroAsiento INT;
+    DECLARE @numeroAsiento INT;
+    DECLARE @idAsiento INT;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        SELECT
+            @fechaInicioPeriodo = periodo.fechaInicioPeriodo,
+            @fechaFinPeriodo = periodo.fechaFinPeriodo,
+            @estadoPeriodo = periodo.estadoPeriodo
+        FROM dbo.PeriodoContable AS periodo WITH (UPDLOCK, HOLDLOCK)
+        WHERE periodo.idPeriodoContable = @idPeriodoContable;
+
+        IF @estadoPeriodo IS NULL
+            THROW 52501, 'El período contable indicado no existe.', 1;
+
+        IF @estadoPeriodo <> 'Abierto'
+            THROW 52502, 'Solo se pueden registrar asientos en un período abierto.', 1;
+
+        IF @fechaAsiento IS NULL
+            THROW 52503, 'La fecha del asiento es obligatoria.', 1;
+
+        IF @fechaAsiento < @fechaInicioPeriodo
+           OR @fechaAsiento > @fechaFinPeriodo
+            THROW 52504, 'La fecha del asiento debe estar dentro del período contable.', 1;
+
+        IF @tipoNormalizado IS NULL
+           OR @tipoNormalizado NOT IN ('Normal', 'Ajuste')
+            THROW 52505, 'El tipo de asiento debe ser Normal o Ajuste.', 1;
+
+        IF NOT EXISTS (SELECT 1 FROM @detalles)
+            THROW 52506, 'El asiento debe contener al menos un detalle.', 1;
+
+        IF EXISTS
+        (
+            SELECT 1
+            FROM @detalles AS detalle
+            WHERE NOT
+            (
+                (detalle.debeDetalle > 0 AND detalle.haberDetalle = 0)
+                OR
+                (detalle.debeDetalle = 0 AND detalle.haberDetalle > 0)
+            )
+        )
+            THROW 52507, 'Cada detalle debe tener un valor positivo únicamente en Debe o únicamente en Haber.', 1;
+
+        IF NOT EXISTS
+        (
+            SELECT 1
+            FROM @detalles AS detalle
+            WHERE detalle.ordenDetalle = 1
+        )
+           OR EXISTS
+        (
+            SELECT 1
+            FROM @detalles AS detalle
+            WHERE detalle.ordenDetalle <= 0
+        )
+            THROW 52508, 'El orden de los detalles debe comenzar en 1 y ser siempre mayor que cero.', 1;
+
+        IF EXISTS
+        (
+            SELECT detalle.ordenDetalle
+            FROM @detalles AS detalle
+            GROUP BY detalle.ordenDetalle
+            HAVING COUNT(*) > 1
+        )
+            THROW 52509, 'El orden de los detalles no puede repetirse dentro del asiento.', 1;
+
+        IF EXISTS
+        (
+            SELECT 1
+            FROM @detalles AS detalle
+            WHERE NOT EXISTS
+            (
+                SELECT 1
+                FROM dbo.CuentaContable AS cuenta WITH (HOLDLOCK)
+                WHERE cuenta.idCuentaContable = detalle.idCuentaContable
+            )
+        )
+            THROW 52510, 'Uno o más detalles contienen una cuenta contable inexistente.', 1;
+
+        IF EXISTS
+        (
+            SELECT 1
+            FROM @detalles AS detalle
+            INNER JOIN dbo.CuentaContable AS cuenta WITH (HOLDLOCK)
+                ON cuenta.idCuentaContable = detalle.idCuentaContable
+            WHERE cuenta.estadoCuenta = 0
+        )
+            THROW 52511, 'Uno o más detalles contienen una cuenta contable inactiva.', 1;
+
+        IF EXISTS
+        (
+            SELECT 1
+            FROM @detalles AS detalle
+            INNER JOIN dbo.CuentaContable AS cuenta WITH (HOLDLOCK)
+                ON cuenta.idCuentaContable = detalle.idCuentaContable
+            WHERE cuenta.permiteMovimientoCuenta = 0
+        )
+            THROW 52512, 'Uno o más detalles contienen una cuenta que no permite movimiento.', 1;
+
+        SELECT
+            @totalDebe = SUM(detalle.debeDetalle),
+            @totalHaber = SUM(detalle.haberDetalle)
+        FROM @detalles AS detalle;
+
+        IF @totalDebe <> @totalHaber
+            THROW 52513, 'El total Debe debe ser igual al total Haber.', 1;
+
+        IF @totalDebe <= 0
+            THROW 52514, 'El total del asiento debe ser mayor que cero.', 1;
+
+        SELECT @ultimoNumeroAsiento = MAX(asiento.numeroAsiento)
+        FROM dbo.Asiento AS asiento WITH
+            (UPDLOCK, HOLDLOCK, INDEX(UQ_Asiento_idPeriodoContable_numeroAsiento))
+        WHERE asiento.idPeriodoContable = @idPeriodoContable;
+
+        IF @ultimoNumeroAsiento = 2147483647
+            THROW 52515, 'No se puede generar otro número de asiento para el período.', 1;
+
+        SET @numeroAsiento = ISNULL(@ultimoNumeroAsiento, 0) + 1;
+
+        INSERT INTO dbo.Asiento
+            (idPeriodoContable, numeroAsiento, fechaAsiento, tipoAsiento,
+             descripcionAsiento, estadoAsiento)
+        VALUES
+            (@idPeriodoContable, @numeroAsiento, @fechaAsiento,
+             @tipoNormalizado, @descripcionNormalizada, 'Registrado');
+
+        SET @idAsiento = CONVERT(INT, SCOPE_IDENTITY());
+
+        INSERT INTO dbo.DetalleAsiento
+            (idAsiento, idCuentaContable, debeDetalle, haberDetalle, ordenDetalle)
+        SELECT
+            @idAsiento,
+            detalle.idCuentaContable,
+            detalle.debeDetalle,
+            detalle.haberDetalle,
+            detalle.ordenDetalle
+        FROM @detalles AS detalle;
+
+        COMMIT TRANSACTION;
+
+        SELECT
+            @idAsiento AS idAsiento,
+            @numeroAsiento AS numeroAsiento;
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE() <> 0
+            ROLLBACK TRANSACTION;
+
+        IF ERROR_NUMBER() IN (2601, 2627)
+            THROW 52516, 'No se pudo asignar un número de asiento único. Intente nuevamente.', 1;
+
         THROW;
     END CATCH;
 END;
