@@ -45,6 +45,15 @@ namespace ContaNexo.Desktop
             }
         }
 
+        private void AlPulsarOperaciones(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button { ContextMenu: { } menuOperaciones })
+            {
+                menuOperaciones.PlacementTarget = (UIElement)sender;
+                menuOperaciones.IsOpen = true;
+            }
+        }
+
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);

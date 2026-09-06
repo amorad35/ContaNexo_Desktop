@@ -4,10 +4,10 @@ public sealed class InicioViewModel : ViewModelBase
 {
     public InicioViewModel(
         Func<Task> navegarCatalogoAsync,
-        Func<Task> navegarLibroDiarioAsync)
+        ComandoAsync navegarLibroDiarioCommand)
     {
         NavegarCatalogoCommand = new ComandoAsync(navegarCatalogoAsync);
-        NavegarLibroDiarioCommand = new ComandoAsync(navegarLibroDiarioAsync);
+        NavegarLibroDiarioCommand = navegarLibroDiarioCommand;
     }
 
     public ComandoAsync NavegarCatalogoCommand { get; }

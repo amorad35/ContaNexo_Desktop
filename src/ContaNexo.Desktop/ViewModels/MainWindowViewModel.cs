@@ -27,9 +27,10 @@ public sealed class MainWindowViewModel : ViewModelBase
             repositorioCuentaContable,
             repositorioAsiento,
             () => PeriodoActivo);
+        NavegarLibroDiarioCommand = new ComandoAsync(NavegarALibroDiarioAsync);
         _inicioViewModel = new InicioViewModel(
             NavegarACatalogoAsync,
-            NavegarALibroDiarioAsync);
+            NavegarLibroDiarioCommand);
         _empresaViewModel = new EmpresaViewModel(repositorioEmpresa, EstablecerEmpresaActiva);
         _periodoContableViewModel = new PeriodoContableViewModel(
             repositorioPeriodoContable,
@@ -80,6 +81,8 @@ public sealed class MainWindowViewModel : ViewModelBase
     public ComandoAsync NavegarPeriodosContablesCommand { get; }
 
     public ComandoAsync NavegarCatalogoCommand { get; }
+
+    public ComandoAsync NavegarLibroDiarioCommand { get; }
 
     public ComandoAsync NavegarEmpresaCommand { get; }
 

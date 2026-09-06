@@ -61,7 +61,7 @@
             </Grid>
         </Border>
 
-        <!-- Navegación visual. Los comandos y desplegables se incorporarán después. -->
+        <!-- Navegación principal. -->
         <Border Grid.Row="1"
                 Background="{StaticResource NavigationBrush}"
                 BorderBrush="{StaticResource NavigationBorderBrush}"
@@ -112,7 +112,18 @@
                                 Content="Catálogo de cuentas"
                                 Style="{StaticResource NavigationButtonStyle}"
                                 Tag="{Binding EsCatalogoActivo}" />
-                        <Button Style="{StaticResource NavigationButtonStyle}" Content="Operaciones  ▾" />
+                        <Button Click="AlPulsarOperaciones"
+                                Content="Operaciones  ▾"
+                                Style="{StaticResource NavigationButtonStyle}">
+                            <Button.ContextMenu>
+                                <ContextMenu Placement="Bottom"
+                                             Style="{StaticResource OperationsMenuStyle}">
+                                    <MenuItem Command="{Binding PlacementTarget.DataContext.NavegarLibroDiarioCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              Header="Libro Diario"
+                                              Style="{StaticResource OperationsMenuItemStyle}" />
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
                         <Button Style="{StaticResource NavigationButtonStyle}" Content="Reportes  ▾" />
                         <Button Command="{Binding NavegarEmpresaCommand}"
                                 Content="Configuración"
