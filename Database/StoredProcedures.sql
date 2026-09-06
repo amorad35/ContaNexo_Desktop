@@ -875,6 +875,115 @@ BEGIN
 END;
 GO
 
+CREATE OR ALTER PROCEDURE dbo.SP_Asiento_ListarPorPeriodo
+    @idPeriodoContable INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        IF @idPeriodoContable IS NULL
+           OR NOT EXISTS
+              (
+                  SELECT 1
+                  FROM dbo.PeriodoContable
+                  WHERE idPeriodoContable = @idPeriodoContable
+              )
+            THROW 52601, 'El período contable solicitado no existe.', 1;
+
+        SELECT
+            asiento.idAsiento,
+            asiento.numeroAsiento,
+            asiento.fechaAsiento,
+            asiento.tipoAsiento,
+            asiento.descripcionAsiento,
+            asiento.estadoAsiento,
+            COALESCE(SUM(detalle.debeDetalle), 0) AS totalDebe,
+            COALESCE(SUM(detalle.haberDetalle), 0) AS totalHaber,
+            COUNT(detalle.idDetalleAsiento) AS cantidadDetalles
+        FROM dbo.Asiento AS asiento
+        LEFT JOIN dbo.DetalleAsiento AS detalle
+            ON detalle.idAsiento = asiento.idAsiento
+        WHERE asiento.idPeriodoContable = @idPeriodoContable
+        GROUP BY
+            asiento.idAsiento,
+            asiento.numeroAsiento,
+            asiento.fechaAsiento,
+            asiento.tipoAsiento,
+            asiento.descripcionAsiento,
+            asiento.estadoAsiento
+        ORDER BY asiento.numeroAsiento ASC;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE dbo.SP_Asiento_ObtenerDetalle
+    @idPeriodoContable INT,
+    @idAsiento INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        IF @idAsiento IS NULL
+           OR @idPeriodoContable IS NULL
+           OR NOT EXISTS
+              (
+                  SELECT 1
+                  FROM dbo.Asiento
+                  WHERE idAsiento = @idAsiento
+                    AND idPeriodoContable = @idPeriodoContable
+              )
+            THROW 52602, 'El asiento indicado no existe en el período contable seleccionado.', 1;
+
+        SELECT
+            asiento.idAsiento,
+            asiento.idPeriodoContable,
+            asiento.numeroAsiento,
+            asiento.fechaAsiento,
+            asiento.tipoAsiento,
+            asiento.descripcionAsiento,
+            asiento.estadoAsiento,
+            COALESCE(SUM(detalle.debeDetalle), 0) AS totalDebe,
+            COALESCE(SUM(detalle.haberDetalle), 0) AS totalHaber,
+            COUNT(detalle.idDetalleAsiento) AS cantidadDetalles
+        FROM dbo.Asiento AS asiento
+        LEFT JOIN dbo.DetalleAsiento AS detalle
+            ON detalle.idAsiento = asiento.idAsiento
+        WHERE asiento.idAsiento = @idAsiento
+          AND asiento.idPeriodoContable = @idPeriodoContable
+        GROUP BY
+            asiento.idAsiento,
+            asiento.idPeriodoContable,
+            asiento.numeroAsiento,
+            asiento.fechaAsiento,
+            asiento.tipoAsiento,
+            asiento.descripcionAsiento,
+            asiento.estadoAsiento;
+
+        SELECT
+            detalle.idDetalleAsiento,
+            detalle.idCuentaContable,
+            cuenta.codigoCuenta,
+            cuenta.nombreCuenta,
+            detalle.debeDetalle,
+            detalle.haberDetalle,
+            detalle.ordenDetalle
+        FROM dbo.DetalleAsiento AS detalle
+        INNER JOIN dbo.CuentaContable AS cuenta
+            ON cuenta.idCuentaContable = detalle.idCuentaContable
+        WHERE detalle.idAsiento = @idAsiento
+        ORDER BY detalle.ordenDetalle ASC;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH;
+END;
+GO
+
 /* PROCEDIMIENTOS DE PERIODOCONTABLE */
 
 CREATE OR ALTER PROCEDURE dbo.SP_PeriodoContable_Listar

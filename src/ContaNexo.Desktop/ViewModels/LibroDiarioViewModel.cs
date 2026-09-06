@@ -19,6 +19,9 @@ public sealed class LibroDiarioViewModel : ViewModelBase
     private readonly Func<PeriodoContableListado?> _obtenerPeriodoActivo;
     private readonly ComandoRelay _agregarLineaCommand;
     private readonly ComandoRelay _eliminarLineaCommand;
+    private readonly ComandoAsync _nuevoAsientoCommand;
+    private readonly ComandoAsync _verAsientoCommand;
+    private readonly ComandoRelay _volverAlLibroCommand;
     private readonly ComandoAsync _guardarCommand;
 
     private PeriodoContableListado? _periodoActivo;
@@ -30,8 +33,13 @@ public sealed class LibroDiarioViewModel : ViewModelBase
     private decimal _diferencia;
     private bool _estaCuadrado;
     private bool _estaCargandoCuentas;
+    private bool _estaCargandoAsientos;
     private bool _cuentasCargadas;
     private bool _estaGuardando;
+    private bool _estaCreandoAsiento;
+    private bool _estaViendoAsiento;
+    private bool _estaCargandoDetalleAsiento;
+    private AsientoDetalleConsulta? _asientoEnConsulta;
     private string _mensajeError = string.Empty;
     private string _mensajeExito = string.Empty;
     private int? _ultimoIdAsientoRegistrado;
@@ -47,6 +55,15 @@ public sealed class LibroDiarioViewModel : ViewModelBase
         _obtenerPeriodoActivo = obtenerPeriodoActivo;
         _agregarLineaCommand = new ComandoRelay(AgregarLinea, PuedeAgregarLinea);
         _eliminarLineaCommand = new ComandoRelay(EliminarLinea, PuedeEliminarLinea);
+        _nuevoAsientoCommand = new ComandoAsync(
+            IniciarNuevoAsientoAsync,
+            PuedeIniciarNuevoAsiento);
+        _verAsientoCommand = new ComandoAsync(
+            VerAsientoAsync,
+            PuedeVerAsiento);
+        _volverAlLibroCommand = new ComandoRelay(
+            VolverAlLibro,
+            PuedeVolverAlLibro);
         _guardarCommand = new ComandoAsync(GuardarAsync, PuedeGuardar);
 
         TiposAsiento = ["Normal", "Ajuste"];
@@ -57,6 +74,8 @@ public sealed class LibroDiarioViewModel : ViewModelBase
     public ObservableCollection<CuentaMovimiento> CuentasMovimiento { get; } = new();
 
     public ObservableCollection<LineaAsientoViewModel> Lineas { get; } = new();
+
+    public ObservableCollection<AsientoListado> AsientosRegistrados { get; } = new();
 
     public IReadOnlyList<string> TiposAsiento { get; }
 
@@ -167,6 +186,70 @@ public sealed class LibroDiarioViewModel : ViewModelBase
         }
     }
 
+    public bool EstaCargandoAsientos
+    {
+        get => _estaCargandoAsientos;
+        private set
+        {
+            if (EstablecerPropiedad(ref _estaCargandoAsientos, value))
+            {
+                NotificarEstadoComandos();
+            }
+        }
+    }
+
+    public bool EstaCreandoAsiento
+    {
+        get => _estaCreandoAsiento;
+        private set
+        {
+            if (EstablecerPropiedad(ref _estaCreandoAsiento, value))
+            {
+                NotificarEstadoComandos();
+            }
+        }
+    }
+
+    public bool EstaViendoAsiento
+    {
+        get => _estaViendoAsiento;
+        private set
+        {
+            if (EstablecerPropiedad(ref _estaViendoAsiento, value))
+            {
+                NotificarEstadoComandos();
+            }
+        }
+    }
+
+    public bool EstaCargandoDetalleAsiento
+    {
+        get => _estaCargandoDetalleAsiento;
+        private set
+        {
+            if (EstablecerPropiedad(ref _estaCargandoDetalleAsiento, value))
+            {
+                NotificarEstadoComandos();
+            }
+        }
+    }
+
+    public AsientoDetalleConsulta? AsientoEnConsulta
+    {
+        get => _asientoEnConsulta;
+        private set
+        {
+            if (EstablecerPropiedad(ref _asientoEnConsulta, value))
+            {
+                NotificarCambio(nameof(TituloAsientoEnConsulta));
+            }
+        }
+    }
+
+    public string TituloAsientoEnConsulta => AsientoEnConsulta is null
+        ? "Asiento"
+        : $"Asiento N.º {AsientoEnConsulta.NumeroAsiento}";
+
     public string MensajeError
     {
         get => _mensajeError;
@@ -205,6 +288,8 @@ public sealed class LibroDiarioViewModel : ViewModelBase
 
     public bool TieneCuentasMovimiento => CuentasMovimiento.Count > 0;
 
+    public bool TieneAsientosRegistrados => AsientosRegistrados.Count > 0;
+
     public bool TieneError => !string.IsNullOrWhiteSpace(MensajeError);
 
     public bool TieneMensajeExito => !string.IsNullOrWhiteSpace(MensajeExito);
@@ -217,11 +302,26 @@ public sealed class LibroDiarioViewModel : ViewModelBase
 
     public ComandoRelay EliminarLineaCommand => _eliminarLineaCommand;
 
+    public ComandoAsync NuevoAsientoCommand => _nuevoAsientoCommand;
+
+    public ComandoAsync VerAsientoCommand => _verAsientoCommand;
+
+    public ComandoRelay VolverAlLibroCommand => _volverAlLibroCommand;
+
     public ComandoAsync GuardarCommand => _guardarCommand;
 
     public async Task CargarAsync()
     {
+        EstaCreandoAsiento = false;
+        EstaViendoAsiento = false;
+        AsientoEnConsulta = null;
         ActualizarPeriodoActivo();
+
+        await RefrescarAsientosRegistradosAsync();
+    }
+
+    private async Task CargarCuentasAsync()
+    {
 
         if (EstaCargandoCuentas || _cuentasCargadas)
         {
@@ -289,8 +389,13 @@ public sealed class LibroDiarioViewModel : ViewModelBase
 
         if (cambioPeriodo)
         {
+            EstaCreandoAsiento = false;
+            EstaViendoAsiento = false;
+            AsientoEnConsulta = null;
             MensajeError = string.Empty;
             MensajeExito = string.Empty;
+            AsientosRegistrados.Clear();
+            NotificarCambio(nameof(TieneAsientosRegistrados));
 
             if (periodo is not null)
             {
@@ -345,6 +450,115 @@ public sealed class LibroDiarioViewModel : ViewModelBase
         NotificarEstadoComandos();
     }
 
+    private bool PuedeIniciarNuevoAsiento()
+    {
+        return !EstaCreandoAsiento
+            && !EstaCargandoAsientos
+            && !EstaGuardando
+            && PeriodoActivoAbierto;
+    }
+
+    private async Task IniciarNuevoAsientoAsync()
+    {
+        ActualizarPeriodoActivo();
+
+        if (!PeriodoActivoAbierto)
+        {
+            return;
+        }
+
+        ReiniciarCapturaDespuesDeGuardar();
+        RestablecerFechaParaPeriodoActivo();
+        MensajeError = string.Empty;
+        MensajeExito = string.Empty;
+        EstaCreandoAsiento = true;
+        await CargarCuentasAsync();
+    }
+
+    private bool PuedeVerAsiento(object? parametro)
+    {
+        return parametro is AsientoListado
+            && PeriodoActivo is not null
+            && !EstaCreandoAsiento
+            && !EstaViendoAsiento
+            && !EstaCargandoAsientos
+            && !EstaCargandoDetalleAsiento;
+    }
+
+    private async Task VerAsientoAsync(object? parametro)
+    {
+        if (parametro is not AsientoListado asientoListado)
+        {
+            return;
+        }
+
+        ActualizarPeriodoActivo();
+        PeriodoContableListado? periodo = PeriodoActivo;
+
+        if (periodo is null)
+        {
+            MensajeExito = string.Empty;
+            MensajeError = "Selecciona un período contable para consultar el asiento.";
+            return;
+        }
+
+        MensajeError = string.Empty;
+        MensajeExito = string.Empty;
+        EstaCargandoDetalleAsiento = true;
+
+        try
+        {
+            AsientoDetalleConsulta detalle =
+                await _repositorioAsiento.ObtenerDetalleAsync(
+                    periodo.IdPeriodoContable,
+                    asientoListado.IdAsiento);
+
+            AsientoEnConsulta = detalle;
+            EstaViendoAsiento = true;
+        }
+        catch (InvalidOperationException excepcion)
+        {
+            AsientoEnConsulta = null;
+            MensajeError = excepcion.Message;
+        }
+        catch (Exception)
+        {
+            AsientoEnConsulta = null;
+            MensajeError =
+                "No se pudo cargar el detalle del asiento. Inténtalo nuevamente.";
+        }
+        finally
+        {
+            EstaCargandoDetalleAsiento = false;
+        }
+    }
+
+    private bool PuedeVolverAlLibro()
+    {
+        return (EstaCreandoAsiento && !EstaGuardando)
+            || EstaViendoAsiento;
+    }
+
+    private void VolverAlLibro()
+    {
+        if (EstaViendoAsiento)
+        {
+            AsientoEnConsulta = null;
+            EstaViendoAsiento = false;
+            MensajeError = string.Empty;
+            MensajeExito = string.Empty;
+            RestablecerMensajeContextoPeriodo();
+            return;
+        }
+
+        ReiniciarCapturaDespuesDeGuardar();
+        RestablecerFechaParaPeriodoActivo();
+        MensajeError = string.Empty;
+        MensajeExito = string.Empty;
+        EstaCreandoAsiento = false;
+        RestablecerMensajeContextoPeriodo();
+    }
+
     private bool PuedeGuardar()
     {
         return !EstaGuardando
@@ -391,6 +605,8 @@ public sealed class LibroDiarioViewModel : ViewModelBase
             UltimoIdAsientoRegistrado = resultado.IdAsiento;
             UltimoNumeroAsientoRegistrado = resultado.NumeroAsiento;
             ReiniciarCapturaDespuesDeGuardar();
+            await RefrescarAsientosRegistradosAsync();
+            EstaCreandoAsiento = false;
             MensajeExito =
                 $"Asiento N.º {resultado.NumeroAsiento} registrado correctamente.";
         }
@@ -492,6 +708,51 @@ public sealed class LibroDiarioViewModel : ViewModelBase
         return true;
     }
 
+    private async Task RefrescarAsientosRegistradosAsync()
+    {
+        if (PeriodoActivo is null)
+        {
+            AsientosRegistrados.Clear();
+            NotificarCambio(nameof(TieneAsientosRegistrados));
+            return;
+        }
+
+        EstaCargandoAsientos = true;
+
+        try
+        {
+            IReadOnlyList<AsientoListado> asientos =
+                await _repositorioAsiento.ListarPorPeriodoAsync(
+                    PeriodoActivo.IdPeriodoContable);
+
+            AsientosRegistrados.Clear();
+
+            foreach (AsientoListado asiento in asientos)
+            {
+                AsientosRegistrados.Add(asiento);
+            }
+
+            NotificarCambio(nameof(TieneAsientosRegistrados));
+        }
+        catch (InvalidOperationException excepcion)
+        {
+            AsientosRegistrados.Clear();
+            MensajeError = excepcion.Message;
+            NotificarCambio(nameof(TieneAsientosRegistrados));
+        }
+        catch (Exception)
+        {
+            AsientosRegistrados.Clear();
+            MensajeError =
+                "No se pudieron cargar los asientos registrados del período.";
+            NotificarCambio(nameof(TieneAsientosRegistrados));
+        }
+        finally
+        {
+            EstaCargandoAsientos = false;
+        }
+    }
+
     private void AgregarLineaInterna()
     {
         var linea = new LineaAsientoViewModel();
@@ -545,6 +806,20 @@ public sealed class LibroDiarioViewModel : ViewModelBase
         ReiniciarLineas();
     }
 
+    private void RestablecerFechaParaPeriodoActivo()
+    {
+        if (PeriodoActivo is null)
+        {
+            return;
+        }
+
+        DateTime fechaHoy = DateTime.Today;
+        FechaAsiento = fechaHoy >= PeriodoActivo.FechaInicioPeriodo.Date
+            && fechaHoy <= PeriodoActivo.FechaFinPeriodo.Date
+                ? fechaHoy
+                : PeriodoActivo.FechaInicioPeriodo.Date;
+    }
+
     private void LimpiarMensajesPorEdicion()
     {
         MensajeExito = string.Empty;
@@ -559,13 +834,29 @@ public sealed class LibroDiarioViewModel : ViewModelBase
     {
         if (PeriodoActivo is null)
         {
-            MensajeError = MensajeSinPeriodoActivo;
+            if (EstaCreandoAsiento)
+            {
+                MensajeError = MensajeSinPeriodoActivo;
+            }
+            else if (MensajeError is MensajeSinPeriodoActivo or MensajePeriodoNoAbierto)
+            {
+                MensajeError = string.Empty;
+            }
+
             return;
         }
 
         if (!PeriodoActivoAbierto)
         {
-            MensajeError = MensajePeriodoNoAbierto;
+            if (EstaCreandoAsiento)
+            {
+                MensajeError = MensajePeriodoNoAbierto;
+            }
+            else if (MensajeError is MensajeSinPeriodoActivo or MensajePeriodoNoAbierto)
+            {
+                MensajeError = string.Empty;
+            }
+
             return;
         }
 
@@ -579,6 +870,9 @@ public sealed class LibroDiarioViewModel : ViewModelBase
     {
         _agregarLineaCommand.NotificarPuedeEjecutar();
         _eliminarLineaCommand.NotificarPuedeEjecutar();
+        _nuevoAsientoCommand.NotificarPuedeEjecutar();
+        _verAsientoCommand.NotificarPuedeEjecutar();
+        _volverAlLibroCommand.NotificarPuedeEjecutar();
         _guardarCommand.NotificarPuedeEjecutar();
     }
 

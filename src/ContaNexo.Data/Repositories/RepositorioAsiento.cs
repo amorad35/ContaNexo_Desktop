@@ -50,6 +50,70 @@ public class RepositorioAsiento
         }
     }
 
+    public async Task<IReadOnlyList<AsientoListado>> ListarPorPeriodoAsync(
+        int idPeriodoContable)
+    {
+        try
+        {
+            await using SqlConnection conexion = _conexionBD.CrearConexion();
+
+            IEnumerable<AsientoListado> asientos =
+                await conexion.QueryAsync<AsientoListado>(
+                    "dbo.SP_Asiento_ListarPorPeriodo",
+                    new { idPeriodoContable },
+                    commandType: CommandType.StoredProcedure);
+
+            return asientos.ToList();
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52601)
+        {
+            throw new InvalidOperationException(
+                "El período contable indicado no existe.",
+                excepcion);
+        }
+        catch (SqlException excepcion)
+        {
+            throw new InvalidOperationException(
+                "No se pudieron obtener los asientos del período.",
+                excepcion);
+        }
+    }
+
+    public async Task<AsientoDetalleConsulta> ObtenerDetalleAsync(
+        int idPeriodoContable,
+        int idAsiento)
+    {
+        try
+        {
+            await using SqlConnection conexion = _conexionBD.CrearConexion();
+            using SqlMapper.GridReader resultados =
+                await conexion.QueryMultipleAsync(
+                    "dbo.SP_Asiento_ObtenerDetalle",
+                    new { idPeriodoContable, idAsiento },
+                    commandType: CommandType.StoredProcedure);
+
+            AsientoDetalleConsulta asiento =
+                await resultados.ReadSingleAsync<AsientoDetalleConsulta>();
+            IEnumerable<DetalleAsientoConsulta> movimientos =
+                await resultados.ReadAsync<DetalleAsientoConsulta>();
+
+            asiento.Movimientos = movimientos.ToList();
+            return asiento;
+        }
+        catch (SqlException excepcion) when (excepcion.Number == 52602)
+        {
+            throw new InvalidOperationException(
+                "El asiento indicado no existe en el período contable seleccionado.",
+                excepcion);
+        }
+        catch (SqlException excepcion)
+        {
+            throw new InvalidOperationException(
+                "No se pudo obtener el detalle del asiento.",
+                excepcion);
+        }
+    }
+
     private static DataTable CrearTablaDetalles(IEnumerable<DetalleAsientoCreacion> detalles)
     {
         var tabla = new DataTable();
