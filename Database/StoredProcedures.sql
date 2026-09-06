@@ -984,6 +984,88 @@ BEGIN
 END;
 GO
 
+/* PROCEDIMIENTOS DE LIBRO MAYOR */
+
+CREATE OR ALTER PROCEDURE dbo.SP_LibroMayor_ObtenerPorPeriodo
+    @idPeriodoContable INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        IF @idPeriodoContable IS NULL
+           OR NOT EXISTS
+              (
+                  SELECT 1
+                  FROM dbo.PeriodoContable
+                  WHERE idPeriodoContable = @idPeriodoContable
+              )
+            THROW 52701, 'El período contable solicitado no existe.', 1;
+
+        SELECT
+            cuenta.idCuentaContable,
+            cuenta.codigoCuenta,
+            cuenta.nombreCuenta,
+            cuenta.naturalezaCuenta,
+            cuenta.ordenCuenta,
+            SUM(detalle.debeDetalle) AS totalDebe,
+            SUM(detalle.haberDetalle) AS totalHaber,
+            CASE
+                WHEN SUM(detalle.debeDetalle) > SUM(detalle.haberDetalle)
+                    THEN SUM(detalle.debeDetalle) - SUM(detalle.haberDetalle)
+                ELSE 0
+            END AS saldoDeudor,
+            CASE
+                WHEN SUM(detalle.haberDetalle) > SUM(detalle.debeDetalle)
+                    THEN SUM(detalle.haberDetalle) - SUM(detalle.debeDetalle)
+                ELSE 0
+            END AS saldoAcreedor
+        FROM dbo.Asiento AS asiento
+        INNER JOIN dbo.DetalleAsiento AS detalle
+            ON detalle.idAsiento = asiento.idAsiento
+        INNER JOIN dbo.CuentaContable AS cuenta
+            ON cuenta.idCuentaContable = detalle.idCuentaContable
+        WHERE asiento.idPeriodoContable = @idPeriodoContable
+          AND asiento.estadoAsiento = 'Registrado'
+        GROUP BY
+            cuenta.idCuentaContable,
+            cuenta.codigoCuenta,
+            cuenta.nombreCuenta,
+            cuenta.naturalezaCuenta,
+            cuenta.ordenCuenta
+        ORDER BY cuenta.ordenCuenta ASC,
+                 cuenta.codigoCuenta ASC;
+
+        SELECT
+            detalle.idDetalleAsiento,
+            detalle.idCuentaContable,
+            asiento.idAsiento,
+            asiento.numeroAsiento,
+            asiento.fechaAsiento,
+            asiento.tipoAsiento,
+            asiento.descripcionAsiento,
+            detalle.debeDetalle AS debe,
+            detalle.haberDetalle AS haber,
+            detalle.ordenDetalle
+        FROM dbo.Asiento AS asiento
+        INNER JOIN dbo.DetalleAsiento AS detalle
+            ON detalle.idAsiento = asiento.idAsiento
+        INNER JOIN dbo.CuentaContable AS cuenta
+            ON cuenta.idCuentaContable = detalle.idCuentaContable
+        WHERE asiento.idPeriodoContable = @idPeriodoContable
+          AND asiento.estadoAsiento = 'Registrado'
+        ORDER BY cuenta.ordenCuenta ASC,
+                 cuenta.codigoCuenta ASC,
+                 asiento.fechaAsiento ASC,
+                 asiento.numeroAsiento ASC,
+                 detalle.ordenDetalle ASC;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH;
+END;
+GO
+
 /* PROCEDIMIENTOS DE PERIODOCONTABLE */
 
 CREATE OR ALTER PROCEDURE dbo.SP_PeriodoContable_Listar
