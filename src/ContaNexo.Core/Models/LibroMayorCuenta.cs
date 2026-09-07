@@ -12,6 +12,28 @@ public class LibroMayorCuenta
 
     public int OrdenCuenta { get; set; }
 
+    public int IdGrupoContable { get; set; }
+
+    public string CodigoGrupo { get; set; } = string.Empty;
+
+    public string NombreGrupo { get; set; } = string.Empty;
+
+    public int IdElementoContable { get; set; }
+
+    public string CodigoElemento { get; set; } = string.Empty;
+
+    public string NombreElemento { get; set; } = string.Empty;
+
+    public int? IdCuentaPadre { get; set; }
+
+    public string? CodigoCuentaPadre { get; set; }
+
+    public string? NombreCuentaPadre { get; set; }
+
+    public int? OrdenCuentaPadre { get; set; }
+
+    public bool TieneHijas { get; set; }
+
     public decimal TotalDebe { get; set; }
 
     public decimal TotalHaber { get; set; }

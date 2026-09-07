@@ -1008,6 +1008,26 @@ BEGIN
             cuenta.nombreCuenta,
             cuenta.naturalezaCuenta,
             cuenta.ordenCuenta,
+            grupo.idGrupoContable,
+            grupo.codigoGrupo,
+            grupo.nombreGrupo,
+            elemento.idElementoContable,
+            elemento.codigoElemento,
+            elemento.nombreElemento,
+            cuenta.idCuentaPadre,
+            padre.codigoCuenta AS codigoCuentaPadre,
+            padre.nombreCuenta AS nombreCuentaPadre,
+            padre.ordenCuenta AS ordenCuentaPadre,
+            CONVERT
+            (
+                BIT,
+                CASE WHEN EXISTS
+                (
+                    SELECT 1
+                    FROM dbo.CuentaContable AS hija
+                    WHERE hija.idCuentaPadre = cuenta.idCuentaContable
+                ) THEN 1 ELSE 0 END
+            ) AS tieneHijas,
             SUM(detalle.debeDetalle) AS totalDebe,
             SUM(detalle.haberDetalle) AS totalHaber,
             CASE
@@ -1025,6 +1045,12 @@ BEGIN
             ON detalle.idAsiento = asiento.idAsiento
         INNER JOIN dbo.CuentaContable AS cuenta
             ON cuenta.idCuentaContable = detalle.idCuentaContable
+        INNER JOIN dbo.GrupoContable AS grupo
+            ON grupo.idGrupoContable = cuenta.idGrupoContable
+        INNER JOIN dbo.ElementoContable AS elemento
+            ON elemento.idElementoContable = grupo.idElementoContable
+        LEFT JOIN dbo.CuentaContable AS padre
+            ON padre.idCuentaContable = cuenta.idCuentaPadre
         WHERE asiento.idPeriodoContable = @idPeriodoContable
           AND asiento.estadoAsiento = 'Registrado'
         GROUP BY
@@ -1032,7 +1058,17 @@ BEGIN
             cuenta.codigoCuenta,
             cuenta.nombreCuenta,
             cuenta.naturalezaCuenta,
-            cuenta.ordenCuenta
+            cuenta.ordenCuenta,
+            grupo.idGrupoContable,
+            grupo.codigoGrupo,
+            grupo.nombreGrupo,
+            elemento.idElementoContable,
+            elemento.codigoElemento,
+            elemento.nombreElemento,
+            cuenta.idCuentaPadre,
+            padre.codigoCuenta,
+            padre.nombreCuenta,
+            padre.ordenCuenta
         ORDER BY cuenta.ordenCuenta ASC,
                  cuenta.codigoCuenta ASC;
 
