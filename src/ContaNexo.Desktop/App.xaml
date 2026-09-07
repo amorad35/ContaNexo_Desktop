@@ -25,6 +25,9 @@
             <DataTemplate DataType="{x:Type viewModels:LibroDiarioViewModel}">
                 <views:LibroDiarioView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:LibroMayorViewModel}">
+                <views:LibroMayorView />
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

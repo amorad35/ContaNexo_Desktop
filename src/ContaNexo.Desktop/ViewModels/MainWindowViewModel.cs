@@ -11,6 +11,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private readonly PeriodoContableViewModel _periodoContableViewModel;
     private readonly CatalogoCuentasViewModel _catalogoCuentasViewModel;
     private readonly LibroDiarioViewModel _libroDiarioViewModel;
+    private readonly LibroMayorViewModel _libroMayorViewModel;
     private ViewModelBase _vistaActual;
     private Empresa? _empresaActiva;
     private PeriodoContableListado? _periodoActivo;
@@ -20,17 +21,23 @@ public sealed class MainWindowViewModel : ViewModelBase
         RepositorioEmpresa repositorioEmpresa,
         RepositorioPeriodoContable repositorioPeriodoContable,
         RepositorioCuentaContable repositorioCuentaContable,
-        RepositorioAsiento repositorioAsiento)
+        RepositorioAsiento repositorioAsiento,
+        RepositorioLibroMayor repositorioLibroMayor)
     {
         _catalogoCuentasViewModel = new CatalogoCuentasViewModel(repositorioCuentaContable);
         _libroDiarioViewModel = new LibroDiarioViewModel(
             repositorioCuentaContable,
             repositorioAsiento,
             () => PeriodoActivo);
+        _libroMayorViewModel = new LibroMayorViewModel(
+            repositorioLibroMayor,
+            () => PeriodoActivo);
         NavegarLibroDiarioCommand = new ComandoAsync(NavegarALibroDiarioAsync);
+        NavegarLibroMayorCommand = new ComandoAsync(NavegarALibroMayorAsync);
         _inicioViewModel = new InicioViewModel(
             NavegarACatalogoAsync,
-            NavegarLibroDiarioCommand);
+            NavegarLibroDiarioCommand,
+            NavegarLibroMayorCommand);
         _empresaViewModel = new EmpresaViewModel(repositorioEmpresa, EstablecerEmpresaActiva);
         _periodoContableViewModel = new PeriodoContableViewModel(
             repositorioPeriodoContable,
@@ -84,6 +91,8 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public ComandoAsync NavegarLibroDiarioCommand { get; }
 
+    public ComandoAsync NavegarLibroMayorCommand { get; }
+
     public ComandoAsync NavegarEmpresaCommand { get; }
 
     public Task InicializarAsync()
@@ -116,6 +125,12 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         VistaActual = _libroDiarioViewModel;
         await _libroDiarioViewModel.CargarAsync();
+    }
+
+    private async Task NavegarALibroMayorAsync()
+    {
+        VistaActual = _libroMayorViewModel;
+        await _libroMayorViewModel.CargarAsync();
     }
 
     private async Task NavegarAEmpresaAsync()

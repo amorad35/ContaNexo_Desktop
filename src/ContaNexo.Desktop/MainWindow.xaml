@@ -121,6 +121,9 @@
                                     <MenuItem Command="{Binding PlacementTarget.DataContext.NavegarLibroDiarioCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                               Header="Libro Diario"
                                               Style="{StaticResource OperationsMenuItemStyle}" />
+                                    <MenuItem Command="{Binding PlacementTarget.DataContext.NavegarLibroMayorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              Header="Libro Mayor"
+                                              Style="{StaticResource OperationsMenuItemStyle}" />
                                 </ContextMenu>
                             </Button.ContextMenu>
                         </Button>

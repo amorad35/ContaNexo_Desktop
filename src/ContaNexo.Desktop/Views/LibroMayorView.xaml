@@ -1,0 +1,650 @@
+<UserControl x:Class="ContaNexo.Desktop.Views.LibroMayorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="760"
+             d:DesignWidth="1400"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style x:Key="MayorResumenCardStyle" TargetType="Border">
+            <Setter Property="Margin" Value="0,0,12,0" />
+            <Setter Property="Padding" Value="18,14" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="11" />
+        </Style>
+
+        <Style x:Key="MayorEstadoResumenStyle"
+               BasedOn="{StaticResource MayorResumenCardStyle}"
+               TargetType="Border">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Background" Value="{StaticResource AmberTintBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AmberBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EstaCuadrado}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GreenTintBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource GreenBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="MayorEstadoResumenTextStyle" TargetType="TextBlock">
+            <Setter Property="Text" Value="Revisar totales" />
+            <Setter Property="Foreground" Value="{StaticResource AmberBrush}" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EstaCuadrado}" Value="True">
+                    <Setter Property="Text" Value="Debe y Haber cuadrados" />
+                    <Setter Property="Foreground" Value="{StaticResource GreenBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="MayorEstadoPanelStyle" TargetType="Border">
+            <Setter Property="MinHeight" Value="230" />
+            <Setter Property="Margin" Value="0,28,0,0" />
+            <Setter Property="Padding" Value="34" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Visibility" Value="Collapsed" />
+        </Style>
+
+        <Style x:Key="MayorSinPeriodoStyle"
+               BasedOn="{StaticResource MayorEstadoPanelStyle}"
+               TargetType="Border">
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding TienePeriodoActivo}" Value="False" />
+                        <Condition Binding="{Binding EstaCargando}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="MayorCargandoStyle"
+               BasedOn="{StaticResource MayorEstadoPanelStyle}"
+               TargetType="Border">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EstaCargando}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="MayorSinMovimientosStyle"
+               BasedOn="{StaticResource MayorEstadoPanelStyle}"
+               TargetType="Border">
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding TienePeriodoActivo}" Value="True" />
+                        <Condition Binding="{Binding TieneCuentas}" Value="False" />
+                        <Condition Binding="{Binding EstaCargando}" Value="False" />
+                        <Condition Binding="{Binding TieneError}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="MayorErrorStyle"
+               BasedOn="{StaticResource MayorEstadoPanelStyle}"
+               TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource ErrorTintBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ErrorBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding TieneError}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="MayorContenidoStyle" TargetType="StackPanel">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding TieneCuentas}" Value="True" />
+                        <Condition Binding="{Binding EstaCargando}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="MayorMovimientoDebeStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Setter Property="Padding" Value="10,5,12,5" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EsDebe}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="MayorMovimientoHaberStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Setter Property="Padding" Value="12,5,10,5" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EsHaber}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="MayorReferenciaTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource VioletBrush}" />
+        </Style>
+
+        <Style x:Key="MayorImporteTextStyle" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="TextAlignment" Value="Right" />
+        </Style>
+
+        <DataTemplate x:Key="MayorMovimientoToolTipTemplate">
+            <StackPanel MaxWidth="360" Margin="3">
+                <TextBlock>
+                    <Run FontWeight="SemiBold" Text="Asiento: N.º " />
+                    <Run Text="{Binding Movimiento.NumeroAsiento, Mode=OneWay}" />
+                </TextBlock>
+                <TextBlock Margin="0,3,0,0">
+                    <Run FontWeight="SemiBold" Text="Fecha: " />
+                    <Run Text="{Binding Movimiento.FechaAsiento, Mode=OneWay, StringFormat={}{0:dd/MM/yyyy}}" />
+                </TextBlock>
+                <TextBlock Margin="0,3,0,0">
+                    <Run FontWeight="SemiBold" Text="Tipo: " />
+                    <Run Text="{Binding Movimiento.TipoAsiento, Mode=OneWay}" />
+                </TextBlock>
+                <TextBlock Margin="0,3,0,0" TextWrapping="Wrap">
+                    <Run FontWeight="SemiBold" Text="Descripción: " />
+                    <Run Text="{Binding Descripcion, Mode=OneWay}" />
+                </TextBlock>
+            </StackPanel>
+        </DataTemplate>
+
+        <Style x:Key="MayorSaldoDeudorStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Setter Property="Width" Value="170" />
+            <Setter Property="Margin" Value="0,8,0,0" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Background" Value="{StaticResource BlueTintBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BrandAccentBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EsSaldoDeudor}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="MayorSaldoAcreedorStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Setter Property="Width" Value="170" />
+            <Setter Property="Margin" Value="0,8,0,0" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Background" Value="{StaticResource AmberTintBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AmberBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EsSaldoAcreedor}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="MayorSaldoCeroStyle" TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Setter Property="Width" Value="170" />
+            <Setter Property="Margin" Value="0,8,0,0" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Background" Value="{StaticResource ContextBarBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EsSaldoCero}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto">
+        <Grid Margin="32,30,32,48"
+              HorizontalAlignment="Stretch">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource EyebrowTextStyle}"
+                               Text="MAYORIZACIÓN" />
+                    <TextBlock Style="{StaticResource PageTitleTextStyle}"
+                               Text="Libro Mayor" />
+                    <TextBlock MaxWidth="760"
+                               Margin="0,8,0,0"
+                               HorizontalAlignment="Left"
+                               Style="{StaticResource BodyTextStyle}"
+                               Text="Movimientos agrupados por cuenta contable del período seleccionado." />
+                </StackPanel>
+
+                <Border Grid.Column="1"
+                        MinWidth="245"
+                        Margin="28,0,0,0"
+                        Padding="16,12"
+                        VerticalAlignment="Center"
+                        Background="{StaticResource VioletTintBrush}"
+                        BorderBrush="{StaticResource VioletBrush}"
+                        BorderThickness="1"
+                        CornerRadius="11">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource ContextLabelTextStyle}"
+                                   Text="PERÍODO ACTIVO" />
+                        <TextBlock Margin="0,4,0,0"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource VioletBrush}"
+                                   Text="{Binding NombrePeriodoActivo}" />
+                        <TextBlock Margin="0,4,0,0"
+                                   FontSize="12"
+                                   Foreground="{StaticResource SecondaryTextBrush}">
+                            <Run Text="{Binding FechaInicioPeriodoActivo, Mode=OneWay, StringFormat={}{0:dd/MM/yyyy}}" />
+                            <Run Text="  —  " />
+                            <Run Text="{Binding FechaFinPeriodoActivo, Mode=OneWay, StringFormat={}{0:dd/MM/yyyy}}" />
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Grid Grid.Row="1">
+                <Border Style="{StaticResource MayorSinPeriodoStyle}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center"
+                                   FontSize="19"
+                                   FontWeight="SemiBold"
+                                   Text="No hay un período contable seleccionado." />
+                        <TextBlock MaxWidth="570"
+                                   Margin="0,8,0,0"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center"
+                                   Style="{StaticResource BodyTextStyle}"
+                                   Text="Selecciona un período abierto en Períodos contables para consultar sus cuentas y movimientos." />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource MayorCargandoStyle}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource VioletBrush}"
+                                   Text="Cargando Libro Mayor..." />
+                        <TextBlock Margin="0,7,0,0"
+                                   Style="{StaticResource BodyTextStyle}"
+                                   Text="Organizando los movimientos por cuenta contable." />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource MayorSinMovimientosStyle}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center"
+                                   FontSize="19"
+                                   FontWeight="SemiBold"
+                                   Text="Este período todavía no tiene movimientos registrados." />
+                        <TextBlock MaxWidth="570"
+                                   Margin="0,8,0,0"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center"
+                                   Style="{StaticResource BodyTextStyle}"
+                                   Text="Cuando existan asientos registrados, sus movimientos aparecerán agrupados por cuenta." />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource MayorErrorStyle}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center"
+                                   FontSize="19"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource ErrorBrush}"
+                                   Text="No fue posible cargar el Libro Mayor." />
+                        <TextBlock MaxWidth="620"
+                                   Margin="0,8,0,0"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{StaticResource ErrorBrush}"
+                                   Text="{Binding MensajeError}"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <StackPanel Grid.Row="2"
+                        Margin="0,16,0,0"
+                        Style="{StaticResource MayorContenidoStyle}">
+                <UniformGrid Columns="4">
+                    <Border Style="{StaticResource MayorResumenCardStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource ContextLabelTextStyle}"
+                                       Text="CUENTAS UTILIZADAS" />
+                            <TextBlock Margin="0,5,0,0"
+                                       FontSize="22"
+                                       FontWeight="SemiBold"
+                                       Text="{Binding CantidadCuentas, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MayorResumenCardStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource ContextLabelTextStyle}"
+                                       Text="TOTAL DEBE" />
+                            <TextBlock Margin="0,5,0,0"
+                                       FontSize="22"
+                                       FontWeight="SemiBold"
+                                       Text="{Binding TotalDebe, Mode=OneWay, StringFormat={}{0:N2}}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MayorResumenCardStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource ContextLabelTextStyle}"
+                                       Text="TOTAL HABER" />
+                            <TextBlock Margin="0,5,0,0"
+                                       FontSize="22"
+                                       FontWeight="SemiBold"
+                                       Text="{Binding TotalHaber, Mode=OneWay, StringFormat={}{0:N2}}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource MayorEstadoResumenStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource ContextLabelTextStyle}"
+                                       Text="COMPROBACIÓN" />
+                            <TextBlock Margin="0,7,0,0"
+                                       Style="{StaticResource MayorEstadoResumenTextStyle}" />
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+                <TextBlock Margin="0,16,0,8"
+                           Style="{StaticResource SectionTitleTextStyle}"
+                           Text="Cuentas del período" />
+
+                <ItemsControl ItemsSource="{Binding Cuentas}"
+                              HorizontalAlignment="Stretch"
+                              HorizontalContentAlignment="Stretch">
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="HorizontalAlignment" Value="Left" />
+                            <Setter Property="VerticalAlignment" Value="Top" />
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel HorizontalAlignment="Stretch" Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Width="351"
+                                    Margin="0,0,12,14"
+                                    Padding="12,11"
+                                    VerticalAlignment="Top"
+                                    Style="{StaticResource PanelCardStyle}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <Grid Grid.Row="0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border MinWidth="62"
+                                                Padding="9,5"
+                                                VerticalAlignment="Center"
+                                                Background="{StaticResource VioletTintBrush}"
+                                                CornerRadius="8">
+                                            <TextBlock HorizontalAlignment="Center"
+                                                       FontSize="13"
+                                                       FontWeight="Bold"
+                                                       Foreground="{StaticResource VioletBrush}"
+                                                       Text="{Binding Cuenta.CodigoCuenta}" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1"
+                                                    Margin="8,0"
+                                                    HorizontalAlignment="Center">
+                                            <TextBlock HorizontalAlignment="Center"
+                                                       FontSize="16"
+                                                       FontWeight="SemiBold"
+                                                       TextAlignment="Center"
+                                                       Text="{Binding Cuenta.NombreCuenta}" />
+                                            <TextBlock Margin="0,1,0,0"
+                                                       HorizontalAlignment="Center"
+                                                       FontSize="12"
+                                                       Foreground="{StaticResource MutedTextBrush}">
+                                                <Run Text="{Binding Cuenta.Movimientos.Count, Mode=OneWay}" />
+                                                <Run Text=" movimientos registrados" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <Border Grid.Column="2"
+                                                Padding="8,4"
+                                                VerticalAlignment="Center"
+                                                Background="{StaticResource BlueTintBrush}"
+                                                BorderBrush="{StaticResource DividerBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8">
+                                            <TextBlock FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource BrandAccentBrush}">
+                                                <Run Text="Naturaleza: " />
+                                                <Run Text="{Binding Cuenta.NaturalezaCuenta}" />
+                                            </TextBlock>
+                                        </Border>
+                                    </Grid>
+
+                                    <Grid Grid.Row="1" Margin="0,9,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="2" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0"
+                                                Padding="10,6,12,6"
+                                                Background="{StaticResource VioletTintBrush}"
+                                                BorderBrush="{StaticResource VioletBrush}"
+                                                BorderThickness="0,0,0,2">
+                                            <TextBlock HorizontalAlignment="Center"
+                                                       FontSize="13"
+                                                       FontWeight="Bold"
+                                                       Foreground="{StaticResource VioletBrush}"
+                                                       Text="DEBE" />
+                                        </Border>
+                                        <Border Grid.Column="1" Background="{StaticResource VioletBrush}" />
+                                        <Border Grid.Column="2"
+                                                Padding="12,6,10,6"
+                                                Background="{StaticResource VioletTintBrush}"
+                                                BorderBrush="{StaticResource VioletBrush}"
+                                                BorderThickness="0,0,0,2">
+                                            <TextBlock HorizontalAlignment="Center"
+                                                       FontSize="13"
+                                                       FontWeight="Bold"
+                                                       Foreground="{StaticResource VioletBrush}"
+                                                       Text="HABER" />
+                                        </Border>
+                                    </Grid>
+
+                                    <ItemsControl Grid.Row="2" ItemsSource="{Binding Movimientos}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="2" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Border Grid.Column="0"
+                                                            Style="{StaticResource MayorMovimientoDebeStyle}">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Style="{StaticResource MayorReferenciaTextStyle}"
+                                                                       Text="{Binding ReferenciaAsiento, Mode=OneWay}">
+                                                                <TextBlock.ToolTip>
+                                                                    <ToolTip Content="{Binding Mode=OneWay}"
+                                                                             ContentTemplate="{StaticResource MayorMovimientoToolTipTemplate}" />
+                                                                </TextBlock.ToolTip>
+                                                            </TextBlock>
+                                                            <TextBlock Grid.Column="1"
+                                                                       Style="{StaticResource MayorImporteTextStyle}"
+                                                                       Text="{Binding Movimiento.Debe, Mode=OneWay, StringFormat={}{0:N2}}">
+                                                                <TextBlock.ToolTip>
+                                                                    <ToolTip Content="{Binding Mode=OneWay}"
+                                                                             ContentTemplate="{StaticResource MayorMovimientoToolTipTemplate}" />
+                                                                </TextBlock.ToolTip>
+                                                            </TextBlock>
+                                                        </Grid>
+                                                    </Border>
+
+                                                    <Border Grid.Column="1" Background="{StaticResource VioletBrush}" />
+
+                                                    <Border Grid.Column="2"
+                                                            Style="{StaticResource MayorMovimientoHaberStyle}">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Style="{StaticResource MayorReferenciaTextStyle}"
+                                                                       Text="{Binding ReferenciaAsiento, Mode=OneWay}">
+                                                                <TextBlock.ToolTip>
+                                                                    <ToolTip Content="{Binding Mode=OneWay}"
+                                                                             ContentTemplate="{StaticResource MayorMovimientoToolTipTemplate}" />
+                                                                </TextBlock.ToolTip>
+                                                            </TextBlock>
+                                                            <TextBlock Grid.Column="1"
+                                                                       Style="{StaticResource MayorImporteTextStyle}"
+                                                                       Text="{Binding Movimiento.Haber, Mode=OneWay, StringFormat={}{0:N2}}">
+                                                                <TextBlock.ToolTip>
+                                                                    <ToolTip Content="{Binding Mode=OneWay}"
+                                                                             ContentTemplate="{StaticResource MayorMovimientoToolTipTemplate}" />
+                                                                </TextBlock.ToolTip>
+                                                            </TextBlock>
+                                                        </Grid>
+                                                    </Border>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <StackPanel Grid.Row="3">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="2" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Grid.Column="1"
+                                                    Background="{StaticResource VioletBrush}" />
+
+                                            <Border Grid.Column="0"
+                                                    Padding="10,7,12,2"
+                                                    BorderBrush="{StaticResource DividerBrush}"
+                                                    BorderThickness="0,2,0,0">
+                                                <Grid>
+                                                    <TextBlock Style="{StaticResource ContextLabelTextStyle}"
+                                                               Text="TOTAL DEBE" />
+                                                    <TextBlock HorizontalAlignment="Right"
+                                                               FontSize="14"
+                                                               FontWeight="SemiBold"
+                                                               Text="{Binding Cuenta.TotalDebe, Mode=OneWay, StringFormat={}{0:N2}}" />
+                                                </Grid>
+                                            </Border>
+                                            <Border Grid.Column="2"
+                                                    Padding="12,7,10,2"
+                                                    BorderBrush="{StaticResource DividerBrush}"
+                                                    BorderThickness="0,2,0,0">
+                                                <Grid>
+                                                    <TextBlock Style="{StaticResource ContextLabelTextStyle}"
+                                                               Text="TOTAL HABER" />
+                                                    <TextBlock HorizontalAlignment="Right"
+                                                               FontSize="14"
+                                                               FontWeight="SemiBold"
+                                                               Text="{Binding Cuenta.TotalHaber, Mode=OneWay, StringFormat={}{0:N2}}" />
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
+
+                                        <Grid>
+                                            <Border Style="{StaticResource MayorSaldoDeudorStyle}">
+                                                <Grid>
+                                                    <TextBlock FontWeight="Bold"
+                                                               Foreground="{StaticResource BrandAccentBrush}"
+                                                               Text="SD" />
+                                                    <TextBlock HorizontalAlignment="Right"
+                                                               FontSize="16"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{StaticResource BrandAccentBrush}"
+                                                               Text="{Binding Cuenta.SaldoDeudor, Mode=OneWay, StringFormat={}{0:N2}}" />
+                                                </Grid>
+                                            </Border>
+                                            <Border Style="{StaticResource MayorSaldoAcreedorStyle}">
+                                                <Grid>
+                                                    <TextBlock FontWeight="Bold"
+                                                               Foreground="{StaticResource AmberBrush}"
+                                                               Text="SA" />
+                                                    <TextBlock HorizontalAlignment="Right"
+                                                               FontSize="16"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{StaticResource AmberBrush}"
+                                                               Text="{Binding Cuenta.SaldoAcreedor, Mode=OneWay, StringFormat={}{0:N2}}" />
+                                                </Grid>
+                                            </Border>
+                                            <Border Style="{StaticResource MayorSaldoCeroStyle}">
+                                                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                                    <TextBlock FontWeight="SemiBold" Text="Saldo" />
+                                                    <TextBlock Margin="10,0,0,0"
+                                                               FontWeight="SemiBold"
+                                                               Text="{Binding ValorSaldo, Mode=OneWay, StringFormat={}{0:N2}}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</UserControl>
