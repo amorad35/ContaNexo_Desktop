@@ -13,6 +13,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private readonly LibroDiarioViewModel _libroDiarioViewModel;
     private readonly LibroMayorViewModel _libroMayorViewModel;
     private readonly BalanceSumasSaldosViewModel _balanceSumasSaldosViewModel;
+    private readonly EstadoResultadosViewModel _estadoResultadosViewModel;
     private ViewModelBase _vistaActual;
     private Empresa? _empresaActiva;
     private PeriodoContableListado? _periodoActivo;
@@ -34,6 +35,9 @@ public sealed class MainWindowViewModel : ViewModelBase
             repositorioLibroMayor,
             () => PeriodoActivo);
         _balanceSumasSaldosViewModel = new BalanceSumasSaldosViewModel(
+            repositorioLibroMayor,
+            () => PeriodoActivo);
+        _estadoResultadosViewModel = new EstadoResultadosViewModel(
             repositorioLibroMayor,
             () => PeriodoActivo);
         NavegarLibroDiarioCommand = new ComandoAsync(NavegarALibroDiarioAsync);
