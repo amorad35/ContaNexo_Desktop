@@ -1,0 +1,456 @@
+<UserControl x:Class="ContaNexo.Desktop.Views.BalanceSumasSaldosView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="760"
+             d:DesignWidth="1400"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style x:Key="BalanceEstadoPanelStyle" TargetType="Border">
+            <Setter Property="MinHeight" Value="230" />
+            <Setter Property="Margin" Value="0,28,0,0" />
+            <Setter Property="Padding" Value="34" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Visibility" Value="Collapsed" />
+        </Style>
+
+        <Style x:Key="BalanceSinPeriodoStyle"
+               BasedOn="{StaticResource BalanceEstadoPanelStyle}"
+               TargetType="Border">
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding TienePeriodoActivo}" Value="False" />
+                        <Condition Binding="{Binding EstaCargando}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceCargandoStyle"
+               BasedOn="{StaticResource BalanceEstadoPanelStyle}"
+               TargetType="Border">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EstaCargando}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceSinMovimientosStyle"
+               BasedOn="{StaticResource BalanceEstadoPanelStyle}"
+               TargetType="Border">
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding TienePeriodoActivo}" Value="True" />
+                        <Condition Binding="{Binding TieneCuentas}" Value="False" />
+                        <Condition Binding="{Binding EstaCargando}" Value="False" />
+                        <Condition Binding="{Binding TieneError}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceErrorStyle"
+               BasedOn="{StaticResource BalanceEstadoPanelStyle}"
+               TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource ErrorTintBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ErrorBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding TieneError}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceContenidoStyle" TargetType="Grid">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding TieneCuentas}" Value="True" />
+                        <Condition Binding="{Binding EstaCargando}" Value="False" />
+                        <Condition Binding="{Binding TieneError}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceDataGridStyle" TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="False" />
+            <Setter Property="CanUserAddRows" Value="False" />
+            <Setter Property="CanUserDeleteRows" Value="False" />
+            <Setter Property="CanUserReorderColumns" Value="False" />
+            <Setter Property="CanUserResizeRows" Value="False" />
+            <Setter Property="CanUserSortColumns" Value="False" />
+            <Setter Property="GridLinesVisibility" Value="All" />
+            <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="VerticalGridLinesBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="RowHeaderWidth" Value="0" />
+            <Setter Property="RowHeight" Value="42" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+
+        <Style x:Key="BalanceColumnHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Background" Value="{StaticResource ContextBarBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,1,1" />
+            <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="BalanceImporteHeaderStyle"
+               BasedOn="{StaticResource BalanceColumnHeaderStyle}"
+               TargetType="DataGridColumnHeader">
+            <Setter Property="HorizontalContentAlignment" Value="Right" />
+        </Style>
+
+        <Style x:Key="BalanceCellStyle" TargetType="DataGridCell">
+            <Setter Property="Padding" Value="10,3" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        </Style>
+
+        <Style x:Key="BalanceImporteCellStyle"
+               BasedOn="{StaticResource BalanceCellStyle}"
+               TargetType="DataGridCell">
+            <Setter Property="Padding" Value="10,3" />
+            <Setter Property="HorizontalContentAlignment" Value="Right" />
+        </Style>
+
+        <Style x:Key="BalanceImporteTextStyle" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextAlignment" Value="Right" />
+            <Setter Property="Margin" Value="0,0,10,0" />
+        </Style>
+
+        <Style x:Key="BalanceRowStyle" TargetType="DataGridRow">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+            <Setter Property="ToolTip" Value="{x:Null}" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource ContextBarBrush}" />
+                </Trigger>
+                <DataTrigger Binding="{Binding TieneInconsistenciaSaldo}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource ErrorTintBrush}" />
+                    <Setter Property="ToolTip" Value="Los saldos de esta cuenta no son consistentes con sus sumas Debe y Haber." />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceNaturalezaStyle" TargetType="Border">
+            <Setter Property="Padding" Value="7,1" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Background" Value="{StaticResource ContextBarBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="9" />
+            <Setter Property="ToolTip" Value="{x:Null}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding TieneSaldoContrarioNaturaleza}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AmberTintBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource AmberBrush}" />
+                    <Setter Property="ToolTip" Value="Esta cuenta presenta un saldo contrario a su naturaleza normal. Es una advertencia educativa, no un error técnico por sí sola." />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceEstadoCuadraturaStyle" TargetType="Border">
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="Background" Value="{StaticResource AmberTintBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AmberBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="9" />
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding EstaCuadrado}" Value="True" />
+                        <Condition Binding="{Binding SaldosCuadrados}" Value="True" />
+                        <Condition Binding="{Binding TieneInconsistenciasSaldo}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Background" Value="{StaticResource GreenTintBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource GreenBrush}" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceEstadoCuadraturaTextoStyle" TargetType="TextBlock">
+            <Setter Property="Text" Value="Revisar balance" />
+            <Setter Property="Foreground" Value="{StaticResource AmberBrush}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding EstaCuadrado}" Value="True" />
+                        <Condition Binding="{Binding SaldosCuadrados}" Value="True" />
+                        <Condition Binding="{Binding TieneInconsistenciasSaldo}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Text" Value="Balance cuadrado" />
+                    <Setter Property="Foreground" Value="{StaticResource GreenBrush}" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceDiagnosticoStyle" TargetType="Border">
+            <Setter Property="Margin" Value="0,10,0,0" />
+            <Setter Property="Padding" Value="12,9" />
+            <Setter Property="Background" Value="{StaticResource ContextBarBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Visibility" Value="Collapsed" />
+        </Style>
+
+        <Style x:Key="BalanceInconsistenciasStyle"
+               BasedOn="{StaticResource BalanceDiagnosticoStyle}"
+               TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource ErrorTintBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ErrorBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding TieneInconsistenciasSaldo}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceNaturalezasStyle"
+               BasedOn="{StaticResource BalanceDiagnosticoStyle}"
+               TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource AmberTintBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AmberBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding TieneAdvertenciasNaturaleza}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto">
+        <Grid Margin="32,30,32,48" MaxWidth="1720" HorizontalAlignment="Stretch">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource EyebrowTextStyle}" Text="COMPROBACIÓN CONTABLE" />
+                    <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="Balance de Sumas y Saldos" />
+                    <TextBlock MaxWidth="760"
+                               Margin="0,8,0,0"
+                               HorizontalAlignment="Left"
+                               TextAlignment="Left"
+                               Style="{StaticResource BodyTextStyle}"
+                               Text="Resumen de movimientos y saldos por cuenta del período contable." />
+                </StackPanel>
+
+                <Border Grid.Column="1"
+                        MinWidth="245"
+                        Margin="28,0,0,0"
+                        Padding="16,12"
+                        VerticalAlignment="Center"
+                        Background="{StaticResource AmberTintBrush}"
+                        BorderBrush="{StaticResource AmberBrush}"
+                        BorderThickness="1"
+                        CornerRadius="11">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="PERÍODO ACTIVO" />
+                        <TextBlock Margin="0,4,0,0"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource AmberBrush}"
+                                   Text="{Binding NombrePeriodoActivo, Mode=OneWay}" />
+                        <TextBlock Margin="0,4,0,0"
+                                   FontSize="12"
+                                   Foreground="{StaticResource SecondaryTextBrush}">
+                            <Run Text="{Binding FechaInicioPeriodoActivo, Mode=OneWay, StringFormat={}{0:dd/MM/yyyy}}" />
+                            <Run Text="  —  " />
+                            <Run Text="{Binding FechaFinPeriodoActivo, Mode=OneWay, StringFormat={}{0:dd/MM/yyyy}}" />
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Grid Grid.Row="1">
+                <Border Style="{StaticResource BalanceSinPeriodoStyle}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center" FontSize="19" FontWeight="SemiBold"
+                                   Text="No hay un período contable seleccionado." />
+                        <TextBlock MaxWidth="570" Margin="0,8,0,0" HorizontalAlignment="Center"
+                                   TextAlignment="Center" Style="{StaticResource BodyTextStyle}"
+                                   Text="Selecciona un período abierto en Períodos contables para consultar el Balance de Sumas y Saldos." />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource BalanceCargandoStyle}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{StaticResource AmberBrush}" Text="Cargando Balance de Sumas y Saldos..." />
+                        <TextBlock Margin="0,7,0,0" Style="{StaticResource BodyTextStyle}"
+                                   Text="Calculando el resumen de movimientos y saldos por cuenta." />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource BalanceSinMovimientosStyle}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center" FontSize="19" FontWeight="SemiBold"
+                                   Text="Este período todavía no tiene movimientos registrados." />
+                        <TextBlock MaxWidth="570" Margin="0,8,0,0" HorizontalAlignment="Center"
+                                   TextAlignment="Center" Style="{StaticResource BodyTextStyle}"
+                                   Text="No existen movimientos registrados para generar el Balance de Sumas y Saldos." />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource BalanceErrorStyle}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center" FontSize="19" FontWeight="SemiBold"
+                                   Foreground="{StaticResource ErrorBrush}" Text="No fue posible cargar el Balance de Sumas y Saldos." />
+                        <TextBlock MaxWidth="620" Margin="0,8,0,0" HorizontalAlignment="Center"
+                                   Foreground="{StaticResource ErrorBrush}" Text="{Binding MensajeError, Mode=OneWay}"
+                                   TextAlignment="Center" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Grid Grid.Row="2" Margin="0,16,0,0" Style="{StaticResource BalanceContenidoStyle}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <Border Style="{StaticResource BalanceEstadoCuadraturaStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="COMPROBACIÓN" />
+                            <TextBlock Margin="0,4,0,0" Style="{StaticResource BalanceEstadoCuadraturaTextoStyle}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1">
+                    <Border Style="{StaticResource BalanceInconsistenciasStyle}">
+                        <TextBlock Foreground="{StaticResource ErrorBrush}" TextWrapping="Wrap">
+                            <Run FontWeight="SemiBold" Text="Revisión técnica: " />
+                            <Run Text="{Binding CantidadInconsistenciasSaldo, Mode=OneWay}" />
+                            <Run Text=" cuenta(s) presentan saldos inconsistentes con sus sumas Debe y Haber." />
+                        </TextBlock>
+                    </Border>
+                    <Border Style="{StaticResource BalanceNaturalezasStyle}">
+                        <TextBlock Foreground="{StaticResource AmberBrush}" TextWrapping="Wrap">
+                            <Run FontWeight="SemiBold" Text="Nota educativa: " />
+                            <Run Text="{Binding CantidadSaldosContrariosNaturaleza, Mode=OneWay}" />
+                            <Run Text=" cuenta(s) tienen saldo contrario a su naturaleza normal; esto no constituye un error técnico por sí solo." />
+                        </TextBlock>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Row="2" Margin="0,18,0,0">
+                    <TextBlock Margin="0,0,0,8" Style="{StaticResource SectionTitleTextStyle}" Text="Cuentas del período" />
+                    <DataGrid MaxHeight="520"
+                              ItemsSource="{Binding Cuentas, Mode=OneWay}"
+                              CellStyle="{StaticResource BalanceCellStyle}"
+                              ColumnHeaderStyle="{StaticResource BalanceColumnHeaderStyle}"
+                              RowStyle="{StaticResource BalanceRowStyle}"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              Style="{StaticResource BalanceDataGridStyle}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Width="82" Header="CÓDIGO" Binding="{Binding CodigoCuenta, Mode=OneWay}" />
+                            <DataGridTextColumn Width="*" MinWidth="190" Header="CUENTA" Binding="{Binding NombreCuenta, Mode=OneWay}" />
+                            <DataGridTemplateColumn Width="100" Header="NATURALEZA">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource BalanceNaturalezaStyle}">
+                                            <TextBlock FontSize="12" FontWeight="SemiBold" Text="{Binding NaturalezaCuenta, Mode=OneWay}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Width="132" Header="SUMA DEBE"
+                                                Binding="{Binding TotalDebe, Mode=OneWay, StringFormat={}{0:N2}}"
+                                                CellStyle="{StaticResource BalanceImporteCellStyle}"
+                                                ElementStyle="{StaticResource BalanceImporteTextStyle}"
+                                                HeaderStyle="{StaticResource BalanceImporteHeaderStyle}" />
+                            <DataGridTextColumn Width="132" Header="SUMA HABER"
+                                                Binding="{Binding TotalHaber, Mode=OneWay, StringFormat={}{0:N2}}"
+                                                CellStyle="{StaticResource BalanceImporteCellStyle}"
+                                                ElementStyle="{StaticResource BalanceImporteTextStyle}"
+                                                HeaderStyle="{StaticResource BalanceImporteHeaderStyle}" />
+                            <DataGridTextColumn Width="132" Header="SALDO DEUDOR"
+                                                Binding="{Binding SaldoDeudor, Mode=OneWay, StringFormat={}{0:N2}}"
+                                                CellStyle="{StaticResource BalanceImporteCellStyle}"
+                                                ElementStyle="{StaticResource BalanceImporteTextStyle}"
+                                                HeaderStyle="{StaticResource BalanceImporteHeaderStyle}" />
+                            <DataGridTextColumn Width="132" Header="SALDO ACREEDOR"
+                                                Binding="{Binding SaldoAcreedor, Mode=OneWay, StringFormat={}{0:N2}}"
+                                                CellStyle="{StaticResource BalanceImporteCellStyle}"
+                                                ElementStyle="{StaticResource BalanceImporteTextStyle}"
+                                                HeaderStyle="{StaticResource BalanceImporteHeaderStyle}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <Border Margin="0,0,0,0"
+                            Padding="0,12"
+                            Background="{StaticResource ContextBarBrush}"
+                            BorderBrush="{StaticResource DividerBrush}"
+                            BorderThickness="1"
+                            CornerRadius="0,0,10,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="82" />
+                                <ColumnDefinition Width="*" MinWidth="190" />
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="132" />
+                                <ColumnDefinition Width="132" />
+                                <ColumnDefinition Width="132" />
+                                <ColumnDefinition Width="132" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Margin="12,0,10,0"
+                                       VerticalAlignment="Center" FontSize="13" FontWeight="Bold" Text="TOTALES" />
+                            <TextBlock Grid.Column="3" Margin="10,0,18,0" HorizontalAlignment="Right"
+                                       FontSize="14" FontWeight="Bold" Text="{Binding TotalDebe, Mode=OneWay, StringFormat={}{0:N2}}" />
+                            <TextBlock Grid.Column="4" Margin="10,0,18,0" HorizontalAlignment="Right"
+                                       FontSize="14" FontWeight="Bold" Text="{Binding TotalHaber, Mode=OneWay, StringFormat={}{0:N2}}" />
+                            <TextBlock Grid.Column="5" Margin="10,0,18,0" HorizontalAlignment="Right"
+                                       FontSize="14" FontWeight="Bold" Text="{Binding TotalSaldoDeudor, Mode=OneWay, StringFormat={}{0:N2}}" />
+                            <TextBlock Grid.Column="6" Margin="10,0,18,0" HorizontalAlignment="Right"
+                                       FontSize="14" FontWeight="Bold" Text="{Binding TotalSaldoAcreedor, Mode=OneWay, StringFormat={}{0:N2}}" />
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

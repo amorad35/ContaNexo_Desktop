@@ -12,6 +12,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private readonly CatalogoCuentasViewModel _catalogoCuentasViewModel;
     private readonly LibroDiarioViewModel _libroDiarioViewModel;
     private readonly LibroMayorViewModel _libroMayorViewModel;
+    private readonly BalanceSumasSaldosViewModel _balanceSumasSaldosViewModel;
     private ViewModelBase _vistaActual;
     private Empresa? _empresaActiva;
     private PeriodoContableListado? _periodoActivo;
@@ -32,12 +33,17 @@ public sealed class MainWindowViewModel : ViewModelBase
         _libroMayorViewModel = new LibroMayorViewModel(
             repositorioLibroMayor,
             () => PeriodoActivo);
+        _balanceSumasSaldosViewModel = new BalanceSumasSaldosViewModel(
+            repositorioLibroMayor,
+            () => PeriodoActivo);
         NavegarLibroDiarioCommand = new ComandoAsync(NavegarALibroDiarioAsync);
         NavegarLibroMayorCommand = new ComandoAsync(NavegarALibroMayorAsync);
+        NavegarBalanceSumasSaldosCommand = new ComandoAsync(NavegarABalanceSumasSaldosAsync);
         _inicioViewModel = new InicioViewModel(
             NavegarACatalogoAsync,
             NavegarLibroDiarioCommand,
-            NavegarLibroMayorCommand);
+            NavegarLibroMayorCommand,
+            NavegarBalanceSumasSaldosCommand);
         _empresaViewModel = new EmpresaViewModel(repositorioEmpresa, EstablecerEmpresaActiva);
         _periodoContableViewModel = new PeriodoContableViewModel(
             repositorioPeriodoContable,
@@ -93,6 +99,8 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public ComandoAsync NavegarLibroMayorCommand { get; }
 
+    public ComandoAsync NavegarBalanceSumasSaldosCommand { get; }
+
     public ComandoAsync NavegarEmpresaCommand { get; }
 
     public Task InicializarAsync()
@@ -131,6 +139,12 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         VistaActual = _libroMayorViewModel;
         await _libroMayorViewModel.CargarAsync();
+    }
+
+    private async Task NavegarABalanceSumasSaldosAsync()
+    {
+        VistaActual = _balanceSumasSaldosViewModel;
+        await _balanceSumasSaldosViewModel.CargarAsync();
     }
 
     private async Task NavegarAEmpresaAsync()

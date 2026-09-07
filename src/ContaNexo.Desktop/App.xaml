@@ -28,6 +28,9 @@
             <DataTemplate DataType="{x:Type viewModels:LibroMayorViewModel}">
                 <views:LibroMayorView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:BalanceSumasSaldosViewModel}">
+                <views:BalanceSumasSaldosView />
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

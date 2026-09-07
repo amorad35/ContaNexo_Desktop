@@ -124,6 +124,9 @@
                                     <MenuItem Command="{Binding PlacementTarget.DataContext.NavegarLibroMayorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                               Header="Libro Mayor"
                                               Style="{StaticResource OperationsMenuItemStyle}" />
+                                    <MenuItem Command="{Binding PlacementTarget.DataContext.NavegarBalanceSumasSaldosCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              Header="Balance de Sumas y Saldos"
+                                              Style="{StaticResource OperationsMenuItemStyle}" />
                                 </ContextMenu>
                             </Button.ContextMenu>
                         </Button>
