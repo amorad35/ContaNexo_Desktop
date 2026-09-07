@@ -31,6 +31,9 @@
             <DataTemplate DataType="{x:Type viewModels:BalanceSumasSaldosViewModel}">
                 <views:BalanceSumasSaldosView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:EstadoResultadosViewModel}">
+                <views:EstadoResultadosView />
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

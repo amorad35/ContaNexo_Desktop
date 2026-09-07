@@ -43,11 +43,13 @@ public sealed class MainWindowViewModel : ViewModelBase
         NavegarLibroDiarioCommand = new ComandoAsync(NavegarALibroDiarioAsync);
         NavegarLibroMayorCommand = new ComandoAsync(NavegarALibroMayorAsync);
         NavegarBalanceSumasSaldosCommand = new ComandoAsync(NavegarABalanceSumasSaldosAsync);
+        NavegarEstadoResultadosCommand = new ComandoAsync(NavegarAEstadoResultadosAsync);
         _inicioViewModel = new InicioViewModel(
             NavegarACatalogoAsync,
             NavegarLibroDiarioCommand,
             NavegarLibroMayorCommand,
-            NavegarBalanceSumasSaldosCommand);
+            NavegarBalanceSumasSaldosCommand,
+            NavegarEstadoResultadosCommand);
         _empresaViewModel = new EmpresaViewModel(repositorioEmpresa, EstablecerEmpresaActiva);
         _periodoContableViewModel = new PeriodoContableViewModel(
             repositorioPeriodoContable,
@@ -105,6 +107,8 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public ComandoAsync NavegarBalanceSumasSaldosCommand { get; }
 
+    public ComandoAsync NavegarEstadoResultadosCommand { get; }
+
     public ComandoAsync NavegarEmpresaCommand { get; }
 
     public Task InicializarAsync()
@@ -149,6 +153,12 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         VistaActual = _balanceSumasSaldosViewModel;
         await _balanceSumasSaldosViewModel.CargarAsync();
+    }
+
+    private async Task NavegarAEstadoResultadosAsync()
+    {
+        VistaActual = _estadoResultadosViewModel;
+        await _estadoResultadosViewModel.CargarAsync();
     }
 
     private async Task NavegarAEmpresaAsync()
