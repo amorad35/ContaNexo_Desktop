@@ -57,6 +57,28 @@ public sealed class EstadoResultadosViewModel : ViewModelBase
 
     public decimal ResultadoPeriodo => Resumen?.ResultadoPeriodo ?? 0;
 
+    public decimal TasaParticipacionTrabajadores =>
+        Resumen?.TasaParticipacionTrabajadores ?? 0;
+
+    public decimal ParticipacionTrabajadores =>
+        Resumen?.ParticipacionTrabajadores ?? 0;
+
+    public decimal ResultadoAntesImpuestoRenta =>
+        Resumen?.ResultadoAntesImpuestoRenta ?? 0;
+
+    public decimal TasaImpuestoRenta => Resumen?.TasaImpuestoRenta ?? 0;
+
+    public decimal ImpuestoRenta => Resumen?.ImpuestoRenta ?? 0;
+
+    public decimal ResultadoNeto => Resumen?.ResultadoNeto ?? 0;
+
+    public string EtiquetaResultadoNeto => ResultadoNeto switch
+    {
+        < 0 => "PÉRDIDA NETA",
+        > 0 => "UTILIDAD NETA",
+        _ => "RESULTADO NETO"
+    };
+
     public int CantidadSaldosContrarios => Resumen?.CantidadSaldosContrarios ?? 0;
 
     public bool TieneSaldosContrarios => Resumen?.TieneSaldosContrarios ?? false;
@@ -135,6 +157,13 @@ public sealed class EstadoResultadosViewModel : ViewModelBase
         NotificarCambio(nameof(TotalIngresos));
         NotificarCambio(nameof(TotalGastos));
         NotificarCambio(nameof(ResultadoPeriodo));
+        NotificarCambio(nameof(TasaParticipacionTrabajadores));
+        NotificarCambio(nameof(ParticipacionTrabajadores));
+        NotificarCambio(nameof(ResultadoAntesImpuestoRenta));
+        NotificarCambio(nameof(TasaImpuestoRenta));
+        NotificarCambio(nameof(ImpuestoRenta));
+        NotificarCambio(nameof(ResultadoNeto));
+        NotificarCambio(nameof(EtiquetaResultadoNeto));
         NotificarCambio(nameof(CantidadSaldosContrarios));
         NotificarCambio(nameof(TieneSaldosContrarios));
     }

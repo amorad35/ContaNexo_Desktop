@@ -6,6 +6,8 @@ public static class EstadoResultadosCalculador
 {
     private const string CodigoElementoIngresos = "4";
     private const string CodigoElementoGastos = "5";
+    private const decimal TasaParticipacionTrabajadores = 0.15m;
+    private const decimal TasaImpuestoRenta = 0.25m;
 
     public static EstadoResultadosResumen Calcular(IEnumerable<LibroMayorCuenta> cuentas)
     {
@@ -39,6 +41,16 @@ public static class EstadoResultadosCalculador
 
         decimal totalIngresos = gruposIngresos.Sum(grupo => grupo.TotalGrupo);
         decimal totalGastos = gruposGastos.Sum(grupo => grupo.TotalGrupo);
+        decimal resultadoPeriodo = totalIngresos - totalGastos;
+        decimal participacionTrabajadores = resultadoPeriodo > 0
+            ? RedondearMoneda(resultadoPeriodo * TasaParticipacionTrabajadores)
+            : 0;
+        decimal resultadoAntesImpuestoRenta =
+            resultadoPeriodo - participacionTrabajadores;
+        decimal impuestoRenta = resultadoPeriodo > 0
+            ? RedondearMoneda(resultadoAntesImpuestoRenta * TasaImpuestoRenta)
+            : 0;
+        decimal resultadoNeto = resultadoAntesImpuestoRenta - impuestoRenta;
 
         return new EstadoResultadosResumen
         {
@@ -46,10 +58,21 @@ public static class EstadoResultadosCalculador
             GruposGastos = gruposGastos,
             TotalIngresos = totalIngresos,
             TotalGastos = totalGastos,
-            ResultadoPeriodo = totalIngresos - totalGastos,
+            ResultadoPeriodo = resultadoPeriodo,
+            TasaParticipacionTrabajadores = TasaParticipacionTrabajadores,
+            ParticipacionTrabajadores = participacionTrabajadores,
+            ResultadoAntesImpuestoRenta = resultadoAntesImpuestoRenta,
+            TasaImpuestoRenta = TasaImpuestoRenta,
+            ImpuestoRenta = impuestoRenta,
+            ResultadoNeto = resultadoNeto,
             CantidadSaldosContrarios = cuentasNominales.Count(cuenta =>
                 cuenta.Importe < 0)
         };
+    }
+
+    private static decimal RedondearMoneda(decimal importe)
+    {
+        return decimal.Round(importe, 2, MidpointRounding.AwayFromZero);
     }
 
     private static EstadoResultadosCuenta CrearCuentaPrincipal(
