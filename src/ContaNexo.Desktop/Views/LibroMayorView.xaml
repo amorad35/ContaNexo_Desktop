@@ -420,52 +420,63 @@
                                     </Grid.RowDefinitions>
 
                                     <Grid Grid.Row="0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <Border MinWidth="62"
-                                                Padding="9,5"
-                                                VerticalAlignment="Center"
-                                                Background="{StaticResource VioletTintBrush}"
-                                                CornerRadius="8">
-                                            <TextBlock HorizontalAlignment="Center"
-                                                       FontSize="13"
-                                                       FontWeight="Bold"
-                                                       Foreground="{StaticResource VioletBrush}"
-                                                       Text="{Binding Cuenta.CodigoCuenta}" />
-                                        </Border>
-                                        <StackPanel Grid.Column="1"
-                                                    Margin="8,0"
-                                                    HorizontalAlignment="Center">
-                                            <TextBlock HorizontalAlignment="Center"
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border MinWidth="62"
+                                                    Padding="9,5"
+                                                    VerticalAlignment="Top"
+                                                    Background="{StaticResource VioletTintBrush}"
+                                                    CornerRadius="8">
+                                                <TextBlock HorizontalAlignment="Center"
+                                                           FontSize="13"
+                                                           FontWeight="Bold"
+                                                           Foreground="{StaticResource VioletBrush}"
+                                                           Text="{Binding Cuenta.CodigoCuenta}" />
+                                            </Border>
+                                            <TextBlock Grid.Column="1"
+                                                       Margin="8,0,0,0"
+                                                       MaxHeight="42"
+                                                       VerticalAlignment="Center"
                                                        FontSize="16"
                                                        FontWeight="SemiBold"
-                                                       TextAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       TextWrapping="Wrap"
                                                        Text="{Binding Cuenta.NombreCuenta}" />
-                                            <TextBlock Margin="0,1,0,0"
-                                                       HorizontalAlignment="Center"
+                                        </Grid>
+
+                                        <Grid Grid.Row="1" Margin="0,4,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock VerticalAlignment="Center"
                                                        FontSize="12"
                                                        Foreground="{StaticResource MutedTextBrush}">
                                                 <Run Text="{Binding Cuenta.Movimientos.Count, Mode=OneWay}" />
                                                 <Run Text=" movimientos registrados" />
                                             </TextBlock>
-                                        </StackPanel>
-                                        <Border Grid.Column="2"
-                                                Padding="8,4"
-                                                VerticalAlignment="Center"
-                                                Background="{StaticResource BlueTintBrush}"
-                                                BorderBrush="{StaticResource DividerBrush}"
-                                                BorderThickness="1"
-                                                CornerRadius="8">
-                                            <TextBlock FontSize="11"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{StaticResource BrandAccentBrush}">
-                                                <Run Text="Naturaleza: " />
-                                                <Run Text="{Binding Cuenta.NaturalezaCuenta}" />
-                                            </TextBlock>
-                                        </Border>
+                                            <Border Grid.Column="1"
+                                                    Padding="8,4"
+                                                    Background="{StaticResource BlueTintBrush}"
+                                                    BorderBrush="{StaticResource DividerBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="8">
+                                                <TextBlock FontSize="11"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource BrandAccentBrush}">
+                                                    <Run Text="Naturaleza: " />
+                                                    <Run Text="{Binding Cuenta.NaturalezaCuenta}" />
+                                                </TextBlock>
+                                            </Border>
+                                        </Grid>
                                     </Grid>
 
                                     <Grid Grid.Row="1" Margin="0,9,0,0">

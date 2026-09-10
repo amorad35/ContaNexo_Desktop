@@ -378,13 +378,12 @@
 
                 <StackPanel Grid.Row="2" Margin="0,18,0,0">
                     <TextBlock Margin="0,0,0,8" Style="{StaticResource SectionTitleTextStyle}" Text="Cuentas del período" />
-                    <DataGrid MaxHeight="520"
-                              ItemsSource="{Binding Cuentas, Mode=OneWay}"
+                    <DataGrid ItemsSource="{Binding Cuentas, Mode=OneWay}"
                               CellStyle="{StaticResource BalanceCellStyle}"
                               ColumnHeaderStyle="{StaticResource BalanceColumnHeaderStyle}"
                               RowStyle="{StaticResource BalanceRowStyle}"
                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Disabled"
                               Style="{StaticResource BalanceDataGridStyle}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Width="82" Header="CÓDIGO" Binding="{Binding CodigoCuenta, Mode=OneWay}" />

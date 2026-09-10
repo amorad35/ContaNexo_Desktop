@@ -17,6 +17,7 @@ public sealed class LibroDiarioViewModel : ViewModelBase
     private readonly RepositorioCuentaContable _repositorioCuentaContable;
     private readonly RepositorioAsiento _repositorioAsiento;
     private readonly Func<PeriodoContableListado?> _obtenerPeriodoActivo;
+    private readonly Func<bool> _confirmarSalidaSinGuardar;
     private readonly ComandoRelay _agregarLineaCommand;
     private readonly ComandoRelay _eliminarLineaCommand;
     private readonly ComandoAsync _nuevoAsientoCommand;
@@ -39,6 +40,10 @@ public sealed class LibroDiarioViewModel : ViewModelBase
     private bool _estaCreandoAsiento;
     private bool _estaViendoAsiento;
     private bool _estaCargandoDetalleAsiento;
+    private bool _tieneCambiosSinGuardar;
+    private DateTime _fechaInicialCaptura = DateTime.Today;
+    private string _tipoInicialCaptura = "Normal";
+    private int _cantidadLineasIniciales = 2;
     private AsientoDetalleConsulta? _asientoEnConsulta;
     private string _mensajeError = string.Empty;
     private string _mensajeExito = string.Empty;
@@ -48,11 +53,13 @@ public sealed class LibroDiarioViewModel : ViewModelBase
     public LibroDiarioViewModel(
         RepositorioCuentaContable repositorioCuentaContable,
         RepositorioAsiento repositorioAsiento,
-        Func<PeriodoContableListado?> obtenerPeriodoActivo)
+        Func<PeriodoContableListado?> obtenerPeriodoActivo,
+        Func<bool>? confirmarSalidaSinGuardar = null)
     {
         _repositorioCuentaContable = repositorioCuentaContable;
         _repositorioAsiento = repositorioAsiento;
         _obtenerPeriodoActivo = obtenerPeriodoActivo;
+        _confirmarSalidaSinGuardar = confirmarSalidaSinGuardar ?? (() => true);
         _agregarLineaCommand = new ComandoRelay(AgregarLinea, PuedeAgregarLinea);
         _eliminarLineaCommand = new ComandoRelay(EliminarLinea, PuedeEliminarLinea);
         _nuevoAsientoCommand = new ComandoAsync(
@@ -69,6 +76,7 @@ public sealed class LibroDiarioViewModel : ViewModelBase
         TiposAsiento = ["Normal", "Ajuste"];
         ReiniciarLineas();
         ActualizarPeriodoActivo();
+        MarcarCapturaLimpia();
     }
 
     public ObservableCollection<CuentaMovimiento> CuentasMovimiento { get; } = new();
@@ -107,6 +115,7 @@ public sealed class LibroDiarioViewModel : ViewModelBase
             if (EstablecerPropiedad(ref _fechaAsiento, value.Date))
             {
                 LimpiarMensajesPorEdicion();
+                ActualizarTieneCambiosSinGuardar();
             }
         }
     }
@@ -119,6 +128,7 @@ public sealed class LibroDiarioViewModel : ViewModelBase
             if (EstablecerPropiedad(ref _tipoAsiento, value))
             {
                 LimpiarMensajesPorEdicion();
+                ActualizarTieneCambiosSinGuardar();
             }
         }
     }
@@ -131,6 +141,7 @@ public sealed class LibroDiarioViewModel : ViewModelBase
             if (EstablecerPropiedad(ref _descripcionAsiento, value))
             {
                 LimpiarMensajesPorEdicion();
+                ActualizarTieneCambiosSinGuardar();
             }
         }
     }
@@ -205,9 +216,16 @@ public sealed class LibroDiarioViewModel : ViewModelBase
         {
             if (EstablecerPropiedad(ref _estaCreandoAsiento, value))
             {
+                ActualizarTieneCambiosSinGuardar();
                 NotificarEstadoComandos();
             }
         }
+    }
+
+    public bool TieneCambiosSinGuardar
+    {
+        get => _tieneCambiosSinGuardar;
+        private set => EstablecerPropiedad(ref _tieneCambiosSinGuardar, value);
     }
 
     public bool EstaViendoAsiento
@@ -399,15 +417,9 @@ public sealed class LibroDiarioViewModel : ViewModelBase
 
             if (periodo is not null)
             {
-                DateTime fechaHoy = DateTime.Today;
-                DateTime fechaInicial = fechaHoy >= periodo.FechaInicioPeriodo.Date
-                    && fechaHoy <= periodo.FechaFinPeriodo.Date
-                        ? fechaHoy
-                        : periodo.FechaInicioPeriodo.Date;
-
                 EstablecerPropiedad(
                     ref _fechaAsiento,
-                    fechaInicial,
+                    AjustarFechaAlPeriodo(DateTime.Today, periodo),
                     nameof(FechaAsiento));
             }
         }
@@ -425,6 +437,7 @@ public sealed class LibroDiarioViewModel : ViewModelBase
     {
         AgregarLineaInterna();
         LimpiarMensajesPorEdicion();
+        ActualizarTieneCambiosSinGuardar();
     }
 
     private bool PuedeEliminarLinea(object? parametro)
@@ -447,6 +460,7 @@ public sealed class LibroDiarioViewModel : ViewModelBase
         Lineas.Remove(linea);
         RecalcularTotales();
         LimpiarMensajesPorEdicion();
+        ActualizarTieneCambiosSinGuardar();
         NotificarEstadoComandos();
     }
 
@@ -472,6 +486,7 @@ public sealed class LibroDiarioViewModel : ViewModelBase
         MensajeError = string.Empty;
         MensajeExito = string.Empty;
         EstaCreandoAsiento = true;
+        MarcarCapturaLimpia();
         await CargarCuentasAsync();
     }
 
@@ -551,12 +566,29 @@ public sealed class LibroDiarioViewModel : ViewModelBase
             return;
         }
 
+        IntentarDescartarCaptura();
+    }
+
+    public bool IntentarDescartarCaptura()
+    {
+        if (!EstaCreandoAsiento)
+        {
+            return true;
+        }
+
+        if (TieneCambiosSinGuardar && !_confirmarSalidaSinGuardar())
+        {
+            return false;
+        }
+
         ReiniciarCapturaDespuesDeGuardar();
         RestablecerFechaParaPeriodoActivo();
         MensajeError = string.Empty;
         MensajeExito = string.Empty;
         EstaCreandoAsiento = false;
+        MarcarCapturaLimpia();
         RestablecerMensajeContextoPeriodo();
+        return true;
     }
 
     private bool PuedeGuardar()
@@ -592,8 +624,8 @@ public sealed class LibroDiarioViewModel : ViewModelBase
                     .Select((linea, indice) => new DetalleAsientoCreacion
                     {
                         IdCuentaContable = linea.CuentaSeleccionada!.IdCuentaContable,
-                        DebeDetalle = linea.Debe,
-                        HaberDetalle = linea.Haber,
+                        DebeDetalle = linea.Debe.GetValueOrDefault(),
+                        HaberDetalle = linea.Haber.GetValueOrDefault(),
                         OrdenDetalle = checked((short)(indice + 1))
                     })
                     .ToList()
@@ -602,11 +634,8 @@ public sealed class LibroDiarioViewModel : ViewModelBase
             AsientoCreacionResultado resultado =
                 await _repositorioAsiento.CrearAsync(asiento);
 
-            UltimoIdAsientoRegistrado = resultado.IdAsiento;
-            UltimoNumeroAsientoRegistrado = resultado.NumeroAsiento;
-            ReiniciarCapturaDespuesDeGuardar();
+            CompletarGuardadoExitoso(resultado);
             await RefrescarAsientosRegistradosAsync();
-            EstaCreandoAsiento = false;
             MensajeExito =
                 $"Asiento N.º {resultado.NumeroAsiento} registrado correctamente.";
         }
@@ -649,7 +678,7 @@ public sealed class LibroDiarioViewModel : ViewModelBase
             || FechaAsiento.Date > periodo.FechaFinPeriodo.Date)
         {
             MensajeError =
-                "La fecha del asiento debe estar dentro del período contable activo.";
+                $"La fecha del asiento debe estar entre el {periodo.FechaInicioPeriodo:dd/MM/yyyy} y el {periodo.FechaFinPeriodo:dd/MM/yyyy}.";
             return false;
         }
 
@@ -678,15 +707,22 @@ public sealed class LibroDiarioViewModel : ViewModelBase
             return false;
         }
 
-        if (Lineas.Any(linea => linea.Debe < 0 || linea.Haber < 0))
+        if (Lineas.Any(linea =>
+                linea.Debe.GetValueOrDefault() < 0
+                || linea.Haber.GetValueOrDefault() < 0))
         {
             MensajeError = "Los valores de Debe y Haber no pueden ser negativos.";
             return false;
         }
 
         if (Lineas.Any(linea =>
-                !((linea.Debe > 0 && linea.Haber == 0)
-                    || (linea.Debe == 0 && linea.Haber > 0))))
+            {
+                decimal debe = linea.Debe.GetValueOrDefault();
+                decimal haber = linea.Haber.GetValueOrDefault();
+
+                return !((debe > 0 && haber == 0)
+                    || (debe == 0 && haber > 0));
+            }))
         {
             MensajeError =
                 "Cada línea debe tener un valor positivo únicamente en Debe o únicamente en Haber.";
@@ -755,7 +791,7 @@ public sealed class LibroDiarioViewModel : ViewModelBase
 
     private void AgregarLineaInterna()
     {
-        var linea = new LineaAsientoViewModel();
+        var linea = new LineaAsientoViewModel(CuentasMovimiento);
         linea.PropertyChanged += AlCambiarLinea;
         Lineas.Add(linea);
         NotificarEstadoComandos();
@@ -770,12 +806,13 @@ public sealed class LibroDiarioViewModel : ViewModelBase
         }
 
         LimpiarMensajesPorEdicion();
+        ActualizarTieneCambiosSinGuardar();
     }
 
     private void RecalcularTotales()
     {
-        decimal totalDebe = Lineas.Sum(linea => linea.Debe);
-        decimal totalHaber = Lineas.Sum(linea => linea.Haber);
+        decimal totalDebe = Lineas.Sum(linea => linea.Debe.GetValueOrDefault());
+        decimal totalHaber = Lineas.Sum(linea => linea.Haber.GetValueOrDefault());
 
         TotalDebe = totalDebe;
         TotalHaber = totalHaber;
@@ -806,6 +843,40 @@ public sealed class LibroDiarioViewModel : ViewModelBase
         ReiniciarLineas();
     }
 
+    private void CompletarGuardadoExitoso(AsientoCreacionResultado resultado)
+    {
+        UltimoIdAsientoRegistrado = resultado.IdAsiento;
+        UltimoNumeroAsientoRegistrado = resultado.NumeroAsiento;
+        ReiniciarCapturaDespuesDeGuardar();
+        EstaCreandoAsiento = false;
+        MarcarCapturaLimpia();
+    }
+
+    private void MarcarCapturaLimpia()
+    {
+        _fechaInicialCaptura = FechaAsiento.Date;
+        _tipoInicialCaptura = TipoAsiento;
+        _cantidadLineasIniciales = Lineas.Count;
+        TieneCambiosSinGuardar = false;
+    }
+
+    private void ActualizarTieneCambiosSinGuardar()
+    {
+        TieneCambiosSinGuardar = EstaCreandoAsiento
+            && (FechaAsiento.Date != _fechaInicialCaptura.Date
+                || !string.Equals(
+                    TipoAsiento,
+                    _tipoInicialCaptura,
+                    StringComparison.Ordinal)
+                || !string.IsNullOrWhiteSpace(DescripcionAsiento)
+                || Lineas.Count != _cantidadLineasIniciales
+                || Lineas.Any(linea =>
+                    linea.CuentaSeleccionada is not null
+                    || !string.IsNullOrWhiteSpace(linea.TextoBusquedaCuenta)
+                    || linea.Debe.GetValueOrDefault() != 0
+                    || linea.Haber.GetValueOrDefault() != 0));
+    }
+
     private void RestablecerFechaParaPeriodoActivo()
     {
         if (PeriodoActivo is null)
@@ -813,11 +884,25 @@ public sealed class LibroDiarioViewModel : ViewModelBase
             return;
         }
 
-        DateTime fechaHoy = DateTime.Today;
-        FechaAsiento = fechaHoy >= PeriodoActivo.FechaInicioPeriodo.Date
-            && fechaHoy <= PeriodoActivo.FechaFinPeriodo.Date
-                ? fechaHoy
-                : PeriodoActivo.FechaInicioPeriodo.Date;
+        FechaAsiento = AjustarFechaAlPeriodo(DateTime.Today, PeriodoActivo);
+    }
+
+    private static DateTime AjustarFechaAlPeriodo(
+        DateTime fecha,
+        PeriodoContableListado periodo)
+    {
+        DateTime fechaNormalizada = fecha.Date;
+        DateTime fechaInicio = periodo.FechaInicioPeriodo.Date;
+        DateTime fechaFin = periodo.FechaFinPeriodo.Date;
+
+        if (fechaNormalizada < fechaInicio)
+        {
+            return fechaInicio;
+        }
+
+        return fechaNormalizada > fechaFin
+            ? fechaFin
+            : fechaNormalizada;
     }
 
     private void LimpiarMensajesPorEdicion()

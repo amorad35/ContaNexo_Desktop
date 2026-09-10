@@ -5,7 +5,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              d:DesignHeight="760"
              d:DesignWidth="1400"
-             mc:Ignorable="d">
+             mc:Ignorable="d"
+             PreviewKeyDown="LibroDiarioView_PreviewKeyDown"
+             SizeChanged="LibroDiarioView_SizeChanged">
     <UserControl.Resources>
         <Style x:Key="DiarioComboBoxStyle" TargetType="ComboBox">
             <Setter Property="MinHeight" Value="38" />
@@ -39,7 +41,7 @@
             <Setter Property="VerticalGridLinesBrush" Value="Transparent" />
             <Setter Property="HeadersVisibility" Value="Column" />
             <Setter Property="RowHeaderWidth" Value="0" />
-            <Setter Property="RowHeight" Value="52" />
+            <Setter Property="RowHeight" Value="46" />
             <Setter Property="SelectionMode" Value="Single" />
             <Setter Property="SelectionUnit" Value="CellOrRowHeader" />
             <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
@@ -63,7 +65,7 @@
         </Style>
 
         <Style x:Key="DiarioCellStyle" TargetType="DataGridCell">
-            <Setter Property="Padding" Value="7,5" />
+            <Setter Property="Padding" Value="6,3" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
@@ -85,19 +87,26 @@
         <Style x:Key="ImporteTextBoxStyle"
                BasedOn="{StaticResource FormTextBoxStyle}"
                TargetType="TextBox">
-            <Setter Property="MinHeight" Value="36" />
-            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="Padding" Value="8,4" />
             <Setter Property="TextAlignment" Value="Right" />
+        </Style>
+
+        <Style x:Key="LineaCuentaComboBoxStyle"
+               BasedOn="{StaticResource DiarioComboBoxStyle}"
+               TargetType="ComboBox">
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="Padding" Value="8,3" />
         </Style>
 
         <Style x:Key="EliminarLineaButtonStyle"
                BasedOn="{StaticResource SecondaryActionButtonStyle}"
                TargetType="Button">
-            <Setter Property="MinWidth" Value="34" />
-            <Setter Property="MinHeight" Value="34" />
-            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="MinWidth" Value="32" />
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="Padding" Value="7,3" />
             <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
-            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontSize" Value="16" />
         </Style>
 
         <Style x:Key="PanelCargaCuentasStyle" TargetType="Border">
@@ -979,9 +988,11 @@
                 </Border>
             </Grid>
 
-            <Grid Margin="0,4,0,0"
+            <Grid x:Name="CapturaAsientoGrid"
+                  Margin="0,4,0,0"
                   Style="{StaticResource CapturaModoPanelStyle}">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
@@ -999,7 +1010,8 @@
                         Content="←  Volver al Libro Diario"
                         Style="{StaticResource SecondaryActionButtonStyle}" />
 
-                <Border Grid.Row="1"
+                <Border x:Name="FormularioAsientoPanel"
+                        Grid.Row="1"
                         Grid.Column="0"
                         Padding="20,18"
                         Style="{StaticResource CapturaAsientoPanelStyle}">
@@ -1046,7 +1058,10 @@
                             <StackPanel Grid.Column="0">
                                 <TextBlock Style="{StaticResource FormLabelTextStyle}"
                                            Text="Fecha" />
-                                <DatePicker SelectedDate="{Binding FechaAsiento, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                <DatePicker x:Name="FechaAsientoEditor"
+                                            DisplayDateEnd="{Binding FechaFinPeriodoActivo, Mode=OneWay}"
+                                            DisplayDateStart="{Binding FechaInicioPeriodoActivo, Mode=OneWay}"
+                                            SelectedDate="{Binding FechaAsiento, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                             SelectedDateFormat="Short"
                                             Style="{StaticResource DiarioDatePickerStyle}" />
                             </StackPanel>
@@ -1103,27 +1118,32 @@
                         </Grid>
 
                         <DataGrid Grid.Row="4"
-                                  Height="250"
                                   Margin="0,12,0,0"
                                   CellStyle="{StaticResource DiarioCellStyle}"
                                   ColumnHeaderStyle="{StaticResource DiarioColumnHeaderStyle}"
                                   ItemsSource="{Binding Lineas}"
                                   RowStyle="{StaticResource DiarioRowStyle}"
+                                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                                   Style="{StaticResource DiarioDataGridStyle}">
                             <DataGrid.Columns>
                                 <DataGridTemplateColumn Width="*" MinWidth="250" Header="CUENTA">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <ComboBox IsTextSearchEnabled="True"
-                                                      ItemsSource="{Binding DataContext.CuentasMovimiento, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                                            <ComboBox IsEditable="True"
+                                                      IsTextSearchEnabled="False"
+                                                      ItemsSource="{Binding CuentasFiltradas}"
+                                                      KeyUp="CuentaSelector_KeyUp"
                                                       MaxDropDownHeight="300"
-                                                      SelectedItem="{Binding CuentaSeleccionada, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                      Style="{StaticResource DiarioComboBoxStyle}"
-                                                      TextSearch.TextPath="NombreCuenta">
+                                                      DropDownClosed="CuentaSelector_DropDownClosed"
+                                                      SelectedItem="{Binding CuentaSeleccionada, Mode=TwoWay, UpdateSourceTrigger=Explicit}"
+                                                      StaysOpenOnEdit="True"
+                                                      Style="{StaticResource LineaCuentaComboBoxStyle}"
+                                                      Text="{Binding TextoBusquedaCuenta, Mode=TwoWay, UpdateSourceTrigger=Explicit}">
                                                 <ComboBox.ItemTemplate>
                                                     <DataTemplate>
                                                         <Grid Margin="2">
                                                             <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
                                                                 <ColumnDefinition Width="Auto" />
                                                                 <ColumnDefinition Width="*" />
                                                             </Grid.ColumnDefinitions>
@@ -1132,7 +1152,8 @@
                                                                        Foreground="{StaticResource BrandAccentBrush}"
                                                                        Text="{Binding CodigoCuenta}" />
                                                             <TextBlock Grid.Column="1"
-                                                                       Margin="8,0,0,0"
+                                                                       Text=" — " />
+                                                            <TextBlock Grid.Column="2"
                                                                        Text="{Binding NombreCuenta}"
                                                                        TextTrimming="CharacterEllipsis" />
                                                         </Grid>
@@ -1146,8 +1167,29 @@
                                 <DataGridTemplateColumn Width="125" Header="DEBE">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBox Style="{StaticResource ImporteTextBoxStyle}"
-                                                     Text="{Binding Debe, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}" />
+                                            <Grid>
+                                                <TextBox x:Name="DebeEditor"
+                                                         Style="{StaticResource ImporteTextBoxStyle}"
+                                                         Text="{Binding TextoDebe, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                <TextBlock Margin="8,0"
+                                                           HorizontalAlignment="Stretch"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{StaticResource MutedTextBrush}"
+                                                           IsHitTestVisible="False"
+                                                           Text="0.00"
+                                                           TextAlignment="Right">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Text, ElementName=DebeEditor}" Value="">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Grid>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
@@ -1155,8 +1197,29 @@
                                 <DataGridTemplateColumn Width="125" Header="HABER">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBox Style="{StaticResource ImporteTextBoxStyle}"
-                                                     Text="{Binding Haber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}" />
+                                            <Grid>
+                                                <TextBox x:Name="HaberEditor"
+                                                         Style="{StaticResource ImporteTextBoxStyle}"
+                                                         Text="{Binding TextoHaber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                <TextBlock Margin="8,0"
+                                                           HorizontalAlignment="Stretch"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{StaticResource MutedTextBrush}"
+                                                           IsHitTestVisible="False"
+                                                           Text="0.00"
+                                                           TextAlignment="Right">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Text, ElementName=HaberEditor}" Value="">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Grid>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
@@ -1179,195 +1242,92 @@
                         <Button Grid.Row="5"
                                 Margin="0,10,0,0"
                                 HorizontalAlignment="Left"
+                                MinHeight="34"
+                                Padding="12,5"
                                 Command="{Binding AgregarLineaCommand}"
                                 Content="＋  Agregar línea"
                                 Style="{StaticResource SecondaryActionButtonStyle}" />
 
                         <Grid Grid.Row="6" Margin="0,18,0,0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-
-                            <UniformGrid Grid.Row="0" Columns="4">
-                                <Border Style="{StaticResource ResumenCardStyle}">
-                                    <StackPanel>
-                                        <TextBlock Style="{StaticResource ContextLabelTextStyle}"
-                                                   Text="TOTAL DEBE" />
-                                        <TextBlock Margin="0,4,0,0"
-                                                   FontSize="18"
-                                                   FontWeight="SemiBold"
-                                                   Text="{Binding TotalDebe, StringFormat={}{0:N2}}" />
-                                    </StackPanel>
-                                </Border>
-                                <Border Style="{StaticResource ResumenCardStyle}">
-                                    <StackPanel>
-                                        <TextBlock Style="{StaticResource ContextLabelTextStyle}"
-                                                   Text="TOTAL HABER" />
-                                        <TextBlock Margin="0,4,0,0"
-                                                   FontSize="18"
-                                                   FontWeight="SemiBold"
-                                                   Text="{Binding TotalHaber, StringFormat={}{0:N2}}" />
-                                    </StackPanel>
-                                </Border>
-                                <Border Style="{StaticResource ResumenCardStyle}">
-                                    <StackPanel>
-                                        <TextBlock Style="{StaticResource ContextLabelTextStyle}"
-                                                   Text="DIFERENCIA" />
-                                        <TextBlock Margin="0,4,0,0"
-                                                   FontSize="18"
-                                                   FontWeight="SemiBold"
-                                                   Text="{Binding Diferencia, StringFormat={}{0:N2}}" />
-                                    </StackPanel>
-                                </Border>
-                                <Border Style="{StaticResource EstadoCuadraturaBorderStyle}">
-                                    <StackPanel>
-                                        <TextBlock Style="{StaticResource ContextLabelTextStyle}"
-                                                   Text="ESTADO" />
-                                        <TextBlock Margin="0,5,0,0"
-                                                   Style="{StaticResource EstadoCuadraturaTextStyle}" />
-                                    </StackPanel>
-                                </Border>
-                            </UniformGrid>
-
-                            <Grid Grid.Row="1" Margin="0,16,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock VerticalAlignment="Center"
-                                           FontSize="12"
-                                           Foreground="{StaticResource MutedTextBrush}"
-                                           Text="El asiento se registrará con estado Registrado." />
-                                <Button Grid.Column="1"
-                                        MinWidth="154"
-                                        Margin="20,0,0,0"
-                                        Command="{Binding GuardarCommand}"
-                                        Content="{Binding TextoGuardar}"
-                                        Style="{StaticResource PrimaryActionButtonStyle}" />
-                            </Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center"
+                                       FontSize="12"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       Text="El asiento se registrará con estado Registrado." />
+                            <Button Grid.Column="1"
+                                    MinWidth="154"
+                                    Margin="20,0,0,0"
+                                    Command="{Binding GuardarCommand}"
+                                    Content="{Binding TextoGuardar}"
+                                    Style="{StaticResource PrimaryActionButtonStyle}" />
                         </Grid>
                     </Grid>
                 </Border>
 
-                <Border Grid.Row="1"
+                <Border x:Name="ResumenAsientoPanel"
+                        Grid.Row="1"
                         Grid.Column="2"
-                        Padding="20,18"
+                        Padding="18,16"
                         VerticalAlignment="Top"
                         Style="{StaticResource PanelCardStyle}">
                     <StackPanel>
-                        <Border Width="42"
-                                Height="42"
-                                HorizontalAlignment="Left"
-                                Background="{StaticResource BlueTintBrush}"
-                                CornerRadius="11">
-                            <TextBlock HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       FontSize="14"
-                                       FontWeight="Bold"
-                                       Foreground="{StaticResource BrandAccentBrush}"
-                                       Text="LD" />
-                        </Border>
-                        <TextBlock Margin="0,14,0,0"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Text="Cómo funciona" />
-                        <TextBlock Margin="0,5,0,0"
+                        <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                                   Text="Resumen del asiento" />
+                        <TextBlock Margin="0,4,0,0"
                                    Style="{StaticResource BodyTextStyle}"
-                                   Text="Registra el asiento siguiendo el orden contable formal." />
+                                   Text="Totales y estado en tiempo real." />
 
-                        <StackPanel Margin="0,18,0,0">
-                            <Grid Margin="0,0,0,12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Style="{StaticResource PasoNumeroStyle}">
-                                    <TextBlock Style="{StaticResource StepNumberTextStyle}" Text="1" />
-                                </Border>
-                                <TextBlock Grid.Column="1"
-                                           VerticalAlignment="Center"
-                                           Style="{StaticResource BodyTextStyle}"
-                                           Text="Selecciona un período contable abierto." />
-                            </Grid>
-                            <Grid Margin="0,0,0,12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Style="{StaticResource PasoNumeroStyle}">
-                                    <TextBlock Style="{StaticResource StepNumberTextStyle}" Text="2" />
-                                </Border>
-                                <TextBlock Grid.Column="1"
-                                           VerticalAlignment="Center"
-                                           Style="{StaticResource BodyTextStyle}"
-                                           Text="Elige la fecha y el tipo de asiento." />
-                            </Grid>
-                            <Grid Margin="0,0,0,12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Style="{StaticResource PasoNumeroStyle}">
-                                    <TextBlock Style="{StaticResource StepNumberTextStyle}" Text="3" />
-                                </Border>
-                                <TextBlock Grid.Column="1"
-                                           VerticalAlignment="Center"
-                                           Style="{StaticResource BodyTextStyle}"
-                                           Text="Selecciona una cuenta en cada línea." />
-                            </Grid>
-                            <Grid Margin="0,0,0,12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Style="{StaticResource PasoNumeroStyle}">
-                                    <TextBlock Style="{StaticResource StepNumberTextStyle}" Text="4" />
-                                </Border>
-                                <TextBlock Grid.Column="1"
-                                           VerticalAlignment="Center"
-                                           Style="{StaticResource BodyTextStyle}"
-                                           Text="Registra el valor en Debe o Haber." />
-                            </Grid>
-                            <Grid Margin="0,0,0,12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Style="{StaticResource PasoNumeroStyle}">
-                                    <TextBlock Style="{StaticResource StepNumberTextStyle}" Text="5" />
-                                </Border>
-                                <TextBlock Grid.Column="1"
-                                           VerticalAlignment="Center"
-                                           Style="{StaticResource BodyTextStyle}"
-                                           Text="Verifica que los totales sean iguales." />
-                            </Grid>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Style="{StaticResource PasoNumeroStyle}">
-                                    <TextBlock Style="{StaticResource StepNumberTextStyle}" Text="6" />
-                                </Border>
-                                <TextBlock Grid.Column="1"
-                                           VerticalAlignment="Center"
-                                           Style="{StaticResource BodyTextStyle}"
-                                           Text="Guarda el asiento." />
-                            </Grid>
-                        </StackPanel>
+                        <Grid Margin="0,14,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
 
-                        <Border Margin="0,20,0,0"
-                                Padding="14,11"
-                                Background="{StaticResource BlueTintBrush}"
-                                BorderBrush="{StaticResource BrandAccentBrush}"
-                                BorderThickness="1"
-                                CornerRadius="9">
-                            <TextBlock FontSize="12"
-                                       Foreground="{StaticResource SecondaryTextBrush}"
-                                       Text="El número del asiento se genera automáticamente y se comparte entre Normal y Ajuste."
-                                       TextWrapping="Wrap" />
-                        </Border>
+                            <Border Margin="0,0,8,8" Style="{StaticResource ResumenCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="TOTAL DEBE" />
+                                    <TextBlock Margin="0,3,0,0"
+                                               FontSize="17"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding TotalDebe, StringFormat={}{0:N2}}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Margin="0,0,0,8" Style="{StaticResource ResumenCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="TOTAL HABER" />
+                                    <TextBlock Margin="0,3,0,0"
+                                               FontSize="17"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding TotalHaber, StringFormat={}{0:N2}}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Row="1" Margin="0,0,8,0" Style="{StaticResource ResumenCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="DIFERENCIA" />
+                                    <TextBlock Margin="0,3,0,0"
+                                               FontSize="17"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding Diferencia, StringFormat={}{0:N2}}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Row="1"
+                                    Grid.Column="1"
+                                    Style="{StaticResource EstadoCuadraturaBorderStyle}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="ESTADO" />
+                                    <TextBlock Margin="0,4,0,0"
+                                               Style="{StaticResource EstadoCuadraturaTextStyle}"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
                     </StackPanel>
                 </Border>
             </Grid>

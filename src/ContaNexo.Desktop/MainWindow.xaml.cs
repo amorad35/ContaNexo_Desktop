@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Windows;
+using System.ComponentModel;
 using ContaNexo.Data.Connections;
 using ContaNexo.Data.Repositories;
 using ContaNexo.Desktop.ViewModels;
@@ -35,7 +36,8 @@ namespace ContaNexo.Desktop
                 repositorioPeriodoContable,
                 repositorioCuentaContable,
                 repositorioAsiento,
-                repositorioLibroMayor);
+                repositorioLibroMayor,
+                ConfirmarSalidaSinGuardar);
             Loaded += AlCargarVentana;
         }
 
@@ -70,6 +72,30 @@ namespace ContaNexo.Desktop
             Height = Math.Min(Height, altoMaximo);
             Left = areaTrabajo.Left + ((areaTrabajo.Width - Width) / 2);
             Top = areaTrabajo.Top + ((areaTrabajo.Height - Height) / 2);
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel viewModel
+                && !viewModel.PuedeCerrarAplicacion())
+            {
+                e.Cancel = true;
+            }
+
+            base.OnClosing(e);
+        }
+
+        private bool ConfirmarSalidaSinGuardar(string mensaje)
+        {
+            MessageBoxResult resultado = MessageBox.Show(
+                this,
+                $"{mensaje}\n\nSí: Salir sin guardar\nNo: Continuar editando",
+                "Cambios sin guardar",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No);
+
+            return resultado == MessageBoxResult.Yes;
         }
     }
 }

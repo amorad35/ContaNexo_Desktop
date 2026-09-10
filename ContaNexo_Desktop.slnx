@@ -3,4 +3,5 @@
   <Project Path="src/ContaNexo.Data/ContaNexo.Data.csproj" Id="81aafe18-5c37-4199-9b5d-5b82a0e32864" />
   <Project Path="src/ContaNexo.Desktop/ContaNexo.Desktop.csproj" />
   <Project Path="tests/ContaNexo.Core.Tests/ContaNexo.Core.Tests.csproj" />
+  <Project Path="tests/ContaNexo.Desktop.Tests/ContaNexo.Desktop.Tests.csproj" />
 </Solution>

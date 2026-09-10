@@ -6,6 +6,11 @@ namespace ContaNexo.Desktop.ViewModels;
 
 public sealed class MainWindowViewModel : ViewModelBase
 {
+    private const string MensajeSalidaNuevoAsiento =
+        "Hay cambios sin guardar en este asiento.\n¿Deseas salir sin guardar?";
+    private const string MensajeCierreNuevoAsiento =
+        "Hay un asiento sin guardar.\n¿Deseas cerrar ContaNexo y perder estos cambios?";
+
     private readonly InicioViewModel _inicioViewModel;
     private readonly EmpresaViewModel _empresaViewModel;
     private readonly PeriodoContableViewModel _periodoContableViewModel;
@@ -15,6 +20,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private readonly BalanceSumasSaldosViewModel _balanceSumasSaldosViewModel;
     private readonly EstadoResultadosViewModel _estadoResultadosViewModel;
     private readonly BalanceGeneralViewModel _balanceGeneralViewModel;
+    private readonly Func<string, bool> _confirmarSalidaSinGuardar;
     private ViewModelBase _vistaActual;
     private Empresa? _empresaActiva;
     private PeriodoContableListado? _periodoActivo;
@@ -25,13 +31,16 @@ public sealed class MainWindowViewModel : ViewModelBase
         RepositorioPeriodoContable repositorioPeriodoContable,
         RepositorioCuentaContable repositorioCuentaContable,
         RepositorioAsiento repositorioAsiento,
-        RepositorioLibroMayor repositorioLibroMayor)
+        RepositorioLibroMayor repositorioLibroMayor,
+        Func<string, bool>? confirmarSalidaSinGuardar = null)
     {
+        _confirmarSalidaSinGuardar = confirmarSalidaSinGuardar ?? (_ => true);
         _catalogoCuentasViewModel = new CatalogoCuentasViewModel(repositorioCuentaContable);
         _libroDiarioViewModel = new LibroDiarioViewModel(
             repositorioCuentaContable,
             repositorioAsiento,
-            () => PeriodoActivo);
+            () => PeriodoActivo,
+            () => _confirmarSalidaSinGuardar(MensajeSalidaNuevoAsiento));
         _libroMayorViewModel = new LibroMayorViewModel(
             repositorioLibroMayor,
             () => PeriodoActivo);
@@ -126,13 +135,29 @@ public sealed class MainWindowViewModel : ViewModelBase
         return _inicializacionTask ??= _empresaViewModel.CargarAsync();
     }
 
+    public bool PuedeCerrarAplicacion()
+    {
+        return !_libroDiarioViewModel.TieneCambiosSinGuardar
+            || _confirmarSalidaSinGuardar(MensajeCierreNuevoAsiento);
+    }
+
     private void NavegarAInicio()
     {
+        if (!IntentarAbandonarVistaActual())
+        {
+            return;
+        }
+
         VistaActual = _inicioViewModel;
     }
 
     private async Task NavegarAPeriodosContablesAsync()
     {
+        if (!IntentarAbandonarVistaActual())
+        {
+            return;
+        }
+
         VistaActual = _periodoContableViewModel;
         await InicializarAsync();
         await _periodoContableViewModel.CargarAsync(
@@ -143,44 +168,85 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     private async Task NavegarACatalogoAsync()
     {
+        if (!IntentarAbandonarVistaActual())
+        {
+            return;
+        }
+
         VistaActual = _catalogoCuentasViewModel;
         await _catalogoCuentasViewModel.CargarAsync();
     }
 
     private async Task NavegarALibroDiarioAsync()
     {
+        if (!IntentarAbandonarVistaActual())
+        {
+            return;
+        }
+
         VistaActual = _libroDiarioViewModel;
         await _libroDiarioViewModel.CargarAsync();
     }
 
     private async Task NavegarALibroMayorAsync()
     {
+        if (!IntentarAbandonarVistaActual())
+        {
+            return;
+        }
+
         VistaActual = _libroMayorViewModel;
         await _libroMayorViewModel.CargarAsync();
     }
 
     private async Task NavegarABalanceSumasSaldosAsync()
     {
+        if (!IntentarAbandonarVistaActual())
+        {
+            return;
+        }
+
         VistaActual = _balanceSumasSaldosViewModel;
         await _balanceSumasSaldosViewModel.CargarAsync();
     }
 
     private async Task NavegarAEstadoResultadosAsync()
     {
+        if (!IntentarAbandonarVistaActual())
+        {
+            return;
+        }
+
         VistaActual = _estadoResultadosViewModel;
         await _estadoResultadosViewModel.CargarAsync();
     }
 
     private async Task NavegarABalanceGeneralAsync()
     {
+        if (!IntentarAbandonarVistaActual())
+        {
+            return;
+        }
+
         VistaActual = _balanceGeneralViewModel;
         await _balanceGeneralViewModel.CargarAsync();
     }
 
     private async Task NavegarAEmpresaAsync()
     {
+        if (!IntentarAbandonarVistaActual())
+        {
+            return;
+        }
+
         VistaActual = _empresaViewModel;
         await _empresaViewModel.CargarAsync();
+    }
+
+    private bool IntentarAbandonarVistaActual()
+    {
+        return !ReferenceEquals(VistaActual, _libroDiarioViewModel)
+            || _libroDiarioViewModel.IntentarDescartarCaptura();
     }
 
     private void EstablecerEmpresaActiva(Empresa? empresa)
