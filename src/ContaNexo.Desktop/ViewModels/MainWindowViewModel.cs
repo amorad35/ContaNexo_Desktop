@@ -20,6 +20,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private readonly BalanceSumasSaldosViewModel _balanceSumasSaldosViewModel;
     private readonly EstadoResultadosViewModel _estadoResultadosViewModel;
     private readonly BalanceGeneralViewModel _balanceGeneralViewModel;
+    private readonly ReportesViewModel _reportesViewModel;
     private readonly Func<string, bool> _confirmarSalidaSinGuardar;
     private ViewModelBase _vistaActual;
     private Empresa? _empresaActiva;
@@ -55,11 +56,17 @@ public sealed class MainWindowViewModel : ViewModelBase
             repositorioLibroMayor,
             () => _empresaActiva,
             () => PeriodoActivo);
+        _reportesViewModel = new ReportesViewModel(
+            repositorioPeriodoContable,
+            repositorioAsiento,
+            repositorioLibroMayor,
+            () => _empresaActiva);
         NavegarLibroDiarioCommand = new ComandoAsync(NavegarALibroDiarioAsync);
         NavegarLibroMayorCommand = new ComandoAsync(NavegarALibroMayorAsync);
         NavegarBalanceSumasSaldosCommand = new ComandoAsync(NavegarABalanceSumasSaldosAsync);
         NavegarEstadoResultadosCommand = new ComandoAsync(NavegarAEstadoResultadosAsync);
         NavegarBalanceGeneralCommand = new ComandoAsync(NavegarABalanceGeneralAsync);
+        NavegarReportesCommand = new ComandoAsync(NavegarAReportesAsync);
         _inicioViewModel = new InicioViewModel(
             NavegarACatalogoAsync,
             NavegarLibroDiarioCommand,
@@ -90,6 +97,7 @@ public sealed class MainWindowViewModel : ViewModelBase
                 NotificarCambio(nameof(EsPeriodosContablesActivo));
                 NotificarCambio(nameof(EsCatalogoActivo));
                 NotificarCambio(nameof(EsEmpresaActiva));
+                NotificarCambio(nameof(EsReportesActivo));
             }
         }
     }
@@ -112,6 +120,8 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public bool EsCatalogoActivo => ReferenceEquals(VistaActual, _catalogoCuentasViewModel);
 
+    public bool EsReportesActivo => ReferenceEquals(VistaActual, _reportesViewModel);
+
     public ComandoRelay NavegarInicioCommand { get; }
 
     public ComandoAsync NavegarPeriodosContablesCommand { get; }
@@ -127,6 +137,8 @@ public sealed class MainWindowViewModel : ViewModelBase
     public ComandoAsync NavegarEstadoResultadosCommand { get; }
 
     public ComandoAsync NavegarBalanceGeneralCommand { get; }
+
+    public ComandoAsync NavegarReportesCommand { get; }
 
     public ComandoAsync NavegarEmpresaCommand { get; }
 
@@ -230,6 +242,18 @@ public sealed class MainWindowViewModel : ViewModelBase
 
         VistaActual = _balanceGeneralViewModel;
         await _balanceGeneralViewModel.CargarAsync();
+    }
+
+    private async Task NavegarAReportesAsync()
+    {
+        if (!IntentarAbandonarVistaActual())
+        {
+            return;
+        }
+
+        VistaActual = _reportesViewModel;
+        await InicializarAsync();
+        await _reportesViewModel.CargarAsync();
     }
 
     private async Task NavegarAEmpresaAsync()

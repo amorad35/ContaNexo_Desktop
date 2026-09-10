@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="QuestPDF" Version="2026.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ContaNexo.Core\ContaNexo.Core.csproj" />
     <ProjectReference Include="..\ContaNexo.Data\ContaNexo.Data.csproj" />
   </ItemGroup>

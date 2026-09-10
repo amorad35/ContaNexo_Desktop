@@ -8,6 +8,7 @@ using System.Windows.Data;
 using ContaNexo.Core.Models;
 using ContaNexo.Data.Connections;
 using ContaNexo.Data.Repositories;
+using ContaNexo.Desktop.Reporting;
 using ContaNexo.Desktop.ViewModels;
 using ContaNexo.Desktop.Views;
 
@@ -46,7 +47,17 @@ internal static class Program
         (nameof(Volver_con_captura_limpia_no_solicita_confirmacion), Volver_con_captura_limpia_no_solicita_confirmacion),
         (nameof(La_navegacion_cancelada_permanece_en_el_libro_diario), La_navegacion_cancelada_permanece_en_el_libro_diario),
         (nameof(La_navegacion_confirmada_sale_del_libro_diario), La_navegacion_confirmada_sale_del_libro_diario),
-        (nameof(El_cierre_cancelado_es_rechazado), El_cierre_cancelado_es_rechazado)
+        (nameof(El_cierre_cancelado_es_rechazado), El_cierre_cancelado_es_rechazado),
+        (nameof(Reportes_ofrece_los_seis_tipos_requeridos), Reportes_ofrece_los_seis_tipos_requeridos),
+        (nameof(Reportes_carga_periodos_abiertos_y_cerrados_sin_cambiar_el_activo), Reportes_carga_periodos_abiertos_y_cerrados_sin_cambiar_el_activo),
+        (nameof(Clasifica_periodos_abiertos_y_cerrados_para_el_documento), Clasifica_periodos_abiertos_y_cerrados_para_el_documento),
+        (nameof(Sanitiza_solo_caracteres_invalidos_del_nombre_sugerido), Sanitiza_solo_caracteres_invalidos_del_nombre_sugerido),
+        (nameof(Genera_un_pdf_valido_aun_sin_movimientos), Genera_un_pdf_valido_aun_sin_movimientos),
+        (nameof(Genera_los_cinco_pdf_con_datos_contables), Genera_los_cinco_pdf_con_datos_contables),
+        (nameof(Advierte_cuando_el_balance_de_sumas_esta_descuadrado), Advierte_cuando_el_balance_de_sumas_esta_descuadrado),
+        (nameof(Genera_un_pdf_completo_con_los_cinco_reportes_en_orden), Genera_un_pdf_completo_con_los_cinco_reportes_en_orden),
+        (nameof(El_reporte_completo_usa_un_nombre_de_archivo_especifico), El_reporte_completo_usa_un_nombre_de_archivo_especifico),
+        (nameof(Todos_los_reportes_incluye_las_cinco_fuentes_individuales), Todos_los_reportes_incluye_las_cinco_fuentes_individuales)
     ];
 
     [STAThread]
@@ -715,6 +726,253 @@ internal static class Program
             FechaFinPeriodo = fin,
             EstadoPeriodo = "Abierto"
         };
+    }
+
+    private static void Reportes_ofrece_los_seis_tipos_requeridos()
+    {
+        TipoReporte[] tipos = ReportesViewModel.OpcionesReporte
+            .Select(opcion => opcion.Tipo)
+            .ToArray();
+
+        AssertIgual(6, tipos.Length);
+        AssertIgual(
+            "LibroDiario,LibroMayor,BalanceSumasSaldos,EstadoResultados,BalanceGeneral,TodosLosReportes",
+            string.Join(',', tipos));
+        AssertIgual("Todos los reportes (PDF único)", ReportesViewModel.OpcionesReporte[5].Nombre);
+    }
+
+    private static void Reportes_carga_periodos_abiertos_y_cerrados_sin_cambiar_el_activo()
+    {
+        var empresa = new Empresa { IdEmpresa = 7, NombreEmpresa = "Empresa de prueba" };
+        PeriodoContableListado periodoActivo = CrearPeriodo(
+            new DateTime(2026, 1, 1),
+            new DateTime(2026, 1, 31),
+            10);
+        periodoActivo.IdEmpresa = empresa.IdEmpresa;
+        PeriodoContableListado periodoCerrado = CrearPeriodo(
+            new DateTime(2025, 12, 1),
+            new DateTime(2025, 12, 31),
+            9);
+        periodoCerrado.IdEmpresa = empresa.IdEmpresa;
+        periodoCerrado.EstadoPeriodo = "Cerrado";
+        PeriodoContableListado activoAntes = periodoActivo;
+        var viewModel = ReportesViewModel.CrearParaPruebas(
+            () => empresa,
+            _ => Task.FromResult<IEnumerable<PeriodoContableListado>>(
+                [periodoActivo, periodoCerrado]));
+
+        viewModel.CargarAsync().GetAwaiter().GetResult();
+        viewModel.PeriodoSeleccionado = viewModel.Periodos[1];
+
+        AssertIgual(2, viewModel.Periodos.Count);
+        AssertIgual("Abierto", viewModel.Periodos[0].EstadoPeriodo);
+        AssertIgual("Cerrado", viewModel.Periodos[1].EstadoPeriodo);
+        AssertMismo(activoAntes, periodoActivo);
+    }
+
+    private static void Clasifica_periodos_abiertos_y_cerrados_para_el_documento()
+    {
+        PeriodoContableListado abierto = CrearPeriodo(
+            new DateTime(2026, 1, 1),
+            new DateTime(2026, 1, 31));
+        PeriodoContableListado cerrado = CrearPeriodo(
+            new DateTime(2025, 12, 1),
+            new DateTime(2025, 12, 31));
+        cerrado.EstadoPeriodo = "Cerrado";
+
+        AssertIgual("PROVISIONAL", ReportesPdfGenerador.ObtenerEstadoReporte(abierto));
+        AssertIgual("FINAL / HISTÓRICO", ReportesPdfGenerador.ObtenerEstadoReporte(cerrado));
+    }
+
+    private static void Sanitiza_solo_caracteres_invalidos_del_nombre_sugerido()
+    {
+        string nombre = ReportesViewModel.SanitizarNombreArchivo(
+            "ContaNexo_Balance General_Período: 2026?.pdf");
+
+        AssertIgual("ContaNexo_Balance General_Período_ 2026_.pdf", nombre);
+    }
+
+    private static void Genera_un_pdf_valido_aun_sin_movimientos()
+    {
+        var empresa = new Empresa { NombreEmpresa = "Empresa de prueba" };
+        PeriodoContableListado periodo = CrearPeriodo(
+            new DateTime(2026, 1, 1),
+            new DateTime(2026, 1, 31));
+        var generador = new ReportesPdfGenerador();
+
+        byte[][] documentos =
+        [
+            generador.GenerarBalanceSumasSaldos(empresa, periodo, []),
+            generador.GenerarEstadoResultados(empresa, periodo, new EstadoResultadosResumen()),
+            generador.GenerarBalanceGeneral(empresa, periodo, new BalanceGeneralResumen()),
+            generador.GenerarLibroMayor(empresa, periodo, []),
+            generador.GenerarLibroDiario(empresa, periodo, [])
+        ];
+
+        AssertIgual(5, documentos.Length);
+        foreach (byte[] pdf in documentos)
+            AssertIgual("%PDF", System.Text.Encoding.ASCII.GetString(pdf, 0, 4));
+    }
+
+    private static void Genera_los_cinco_pdf_con_datos_contables()
+    {
+        var empresa = new Empresa { NombreEmpresa = "Empresa de prueba" };
+        PeriodoContableListado periodo = CrearPeriodo(
+            new DateTime(2026, 1, 1),
+            new DateTime(2026, 1, 31));
+        var movimiento = new LibroMayorMovimiento
+        {
+            NumeroAsiento = 1,
+            FechaAsiento = new DateTime(2026, 1, 10),
+            DescripcionAsiento = "Registro de prueba",
+            Debe = 100m
+        };
+        IReadOnlyList<LibroMayorCuenta> cuentas =
+        [
+            new LibroMayorCuenta
+            {
+                IdCuentaContable = 1,
+                CodigoCuenta = "1101",
+                NombreCuenta = "Caja",
+                NaturalezaCuenta = "Deudora",
+                CodigoElemento = "1",
+                CodigoGrupo = "11",
+                NombreGrupo = "Activo Corriente",
+                OrdenCuenta = 1,
+                TotalDebe = 100m,
+                SaldoDeudor = 100m,
+                Movimientos = [movimiento]
+            },
+            new LibroMayorCuenta
+            {
+                IdCuentaContable = 2,
+                CodigoCuenta = "4101",
+                NombreCuenta = "Ventas",
+                NaturalezaCuenta = "Acreedora",
+                CodigoElemento = "4",
+                CodigoGrupo = "41",
+                NombreGrupo = "Ingresos",
+                OrdenCuenta = 2,
+                TotalHaber = 100m
+            }
+        ];
+        var asiento = new AsientoDetalleConsulta
+        {
+            NumeroAsiento = 1,
+            FechaAsiento = new DateTime(2026, 1, 10),
+            TipoAsiento = "Normal",
+            DescripcionAsiento = "Registro de prueba",
+            TotalDebe = 100m,
+            TotalHaber = 100m,
+            Movimientos =
+            [
+                new DetalleAsientoConsulta
+                {
+                    CodigoCuenta = "1101",
+                    NombreCuenta = "Caja",
+                    DebeDetalle = 100m,
+                    OrdenDetalle = 1
+                },
+                new DetalleAsientoConsulta
+                {
+                    CodigoCuenta = "4101",
+                    NombreCuenta = "Ventas",
+                    HaberDetalle = 100m,
+                    OrdenDetalle = 2
+                }
+            ]
+        };
+        var generador = new ReportesPdfGenerador();
+        byte[][] documentos =
+        [
+            generador.GenerarBalanceSumasSaldos(empresa, periodo, cuentas),
+            generador.GenerarEstadoResultados(
+                empresa,
+                periodo,
+                ContaNexo.Core.Calculations.EstadoResultadosCalculador.Calcular(cuentas)),
+            generador.GenerarBalanceGeneral(
+                empresa,
+                periodo,
+                ContaNexo.Core.Calculations.BalanceGeneralCalculador.Calcular(cuentas)),
+            generador.GenerarLibroMayor(empresa, periodo, cuentas),
+            generador.GenerarLibroDiario(empresa, periodo, [asiento])
+        ];
+
+        foreach (byte[] pdf in documentos)
+            AssertIgual("%PDF", System.Text.Encoding.ASCII.GetString(pdf, 0, 4));
+    }
+
+    private static void Advierte_cuando_el_balance_de_sumas_esta_descuadrado()
+    {
+        IReadOnlyList<LibroMayorCuenta> cuentas =
+        [
+            new LibroMayorCuenta
+            {
+                CodigoCuenta = "1101",
+                NombreCuenta = "Caja",
+                NaturalezaCuenta = "Deudora",
+                TotalDebe = 100m,
+                SaldoDeudor = 100m
+            }
+        ];
+
+        IReadOnlyList<string> advertencias =
+            ReportesPdfGenerador.ObtenerAdvertenciasBalance(cuentas);
+
+        AssertIgual(true, advertencias.Any(texto => texto.Contains("no coinciden", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static void Genera_un_pdf_completo_con_los_cinco_reportes_en_orden()
+    {
+        var empresa = new Empresa { NombreEmpresa = "Empresa de prueba" };
+        PeriodoContableListado periodo = CrearPeriodo(
+            new DateTime(2026, 1, 1),
+            new DateTime(2026, 1, 31));
+        var generador = new ReportesPdfGenerador();
+
+        byte[] pdf = generador.GenerarReporteCompleto(
+            empresa,
+            periodo,
+            [],
+            [],
+            new EstadoResultadosResumen(),
+            new BalanceGeneralResumen());
+
+        AssertIgual("%PDF", System.Text.Encoding.ASCII.GetString(pdf, 0, 4));
+        AssertIgual(
+            "Libro Diario,Libro Mayor,Balance de Sumas y Saldos,Estado de Resultados,Balance General",
+            string.Join(',', ReportesPdfGenerador.OrdenReporteCompleto));
+    }
+
+    private static void El_reporte_completo_usa_un_nombre_de_archivo_especifico()
+    {
+        PeriodoContableListado periodo = CrearPeriodo(
+            new DateTime(2026, 1, 1),
+            new DateTime(2026, 1, 31));
+        periodo.NombrePeriodo = "Enero:2026";
+
+        string nombre = ReportesViewModel.CrearNombreSugerido(
+            ReportesViewModel.OpcionesReporte[5],
+            periodo);
+
+        AssertIgual("ContaNexo_Reporte_Completo_Enero_2026.pdf", nombre);
+    }
+
+    private static void Todos_los_reportes_incluye_las_cinco_fuentes_individuales()
+    {
+        TipoReporte[] individuales =
+        [
+            TipoReporte.LibroDiario,
+            TipoReporte.LibroMayor,
+            TipoReporte.BalanceSumasSaldos,
+            TipoReporte.EstadoResultados,
+            TipoReporte.BalanceGeneral
+        ];
+
+        foreach (TipoReporte individual in individuales)
+            AssertIgual(true, ReportesViewModel.IncluyeReporte(TipoReporte.TodosLosReportes, individual));
+
+        AssertIgual(false, ReportesViewModel.IncluyeReporte(TipoReporte.LibroDiario, TipoReporte.LibroMayor));
     }
 
     private static void PrepararCapturaCuadrada(LibroDiarioViewModel libro)

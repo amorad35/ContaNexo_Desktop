@@ -136,7 +136,10 @@
                                 </ContextMenu>
                             </Button.ContextMenu>
                         </Button>
-                        <Button Style="{StaticResource NavigationButtonStyle}" Content="Reportes  ▾" />
+                        <Button Command="{Binding NavegarReportesCommand}"
+                                Content="Reportes"
+                                Style="{StaticResource NavigationButtonStyle}"
+                                Tag="{Binding EsReportesActivo}" />
                         <Button Command="{Binding NavegarEmpresaCommand}"
                                 Content="Configuración"
                                 Style="{StaticResource NavigationButtonStyle}"

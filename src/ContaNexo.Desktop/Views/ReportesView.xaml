@@ -1,0 +1,130 @@
+<UserControl x:Class="ContaNexo.Desktop.Views.ReportesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:ContaNexo.Desktop.ViewModels"
+             d:DesignHeight="760"
+             d:DesignWidth="1280"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style x:Key="MensajeEstadoReportesStyle" BasedOn="{StaticResource BodyTextStyle}" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,16,0,0" />
+            <Setter Property="Visibility" Value="Collapsed" />
+        </Style>
+    </UserControl.Resources>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32" MaxWidth="900" HorizontalAlignment="Left">
+            <TextBlock Style="{StaticResource EyebrowTextStyle}" Text="DOCUMENTOS CONTABLES" />
+            <TextBlock Margin="0,5,0,0" Style="{StaticResource PageTitleTextStyle}" Text="Reportes" />
+            <TextBlock Margin="0,8,0,0"
+                       Style="{StaticResource BodyTextStyle}"
+                       Text="Selecciona un período y el documento contable que deseas generar en PDF." />
+
+            <TextBlock Text="Cargando períodos...">
+                <TextBlock.Style>
+                    <Style BasedOn="{StaticResource MensajeEstadoReportesStyle}" TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding EstaCargando}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <TextBlock Text="Configura una empresa para consultar sus reportes.">
+                <TextBlock.Style>
+                    <Style BasedOn="{StaticResource MensajeEstadoReportesStyle}" TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding TieneEmpresa}" Value="False">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <TextBlock Text="La empresa no tiene períodos contables registrados.">
+                <TextBlock.Style>
+                    <Style BasedOn="{StaticResource MensajeEstadoReportesStyle}" TargetType="TextBlock">
+                        <Style.Triggers>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding TieneEmpresa}" Value="True" />
+                                    <Condition Binding="{Binding TienePeriodos}" Value="False" />
+                                    <Condition Binding="{Binding EstaCargando}" Value="False" />
+                                    <Condition Binding="{Binding TieneError}" Value="False" />
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="Visibility" Value="Visible" />
+                            </MultiDataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <Border Margin="0,24,0,0" Padding="24" Style="{StaticResource PanelCardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="24" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource FormLabelTextStyle}" Text="PERÍODO" />
+                        <ComboBox Margin="0,8,0,0"
+                                  MinHeight="42"
+                                  Padding="10,6"
+                                  ItemsSource="{Binding Periodos}"
+                                  SelectedItem="{Binding PeriodoSeleccionado, Mode=TwoWay}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="2">
+                                        <TextBlock FontWeight="SemiBold" Text="{Binding NombrePeriodo}" />
+                                        <TextBlock Margin="0,2,0,0" FontSize="11" Foreground="{StaticResource MutedTextBrush}">
+                                            <Run Text="{Binding FechaInicioPeriodo, StringFormat={}{0:dd/MM/yyyy}}" />
+                                            <Run Text=" – " />
+                                            <Run Text="{Binding FechaFinPeriodo, StringFormat={}{0:dd/MM/yyyy}}" />
+                                            <Run Text=" · " />
+                                            <Run Text="{Binding EstadoPeriodo}" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource FormLabelTextStyle}" Text="TIPO DE REPORTE" />
+                        <ComboBox Margin="0,8,0,0"
+                                  MinHeight="42"
+                                  Padding="10,6"
+                                  DisplayMemberPath="Nombre"
+                                  ItemsSource="{Binding Source={x:Static viewModels:ReportesViewModel.OpcionesReporte}}"
+                                  SelectedItem="{Binding ReporteSeleccionado, Mode=TwoWay}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Margin="0,16,0,0" Padding="18" Background="{StaticResource ContextBarBrush}" CornerRadius="10">
+                <StackPanel>
+                    <TextBlock FontWeight="SemiBold" Text="Estado del documento" />
+                    <TextBlock Margin="0,4,0,0" FontSize="14" FontWeight="Bold" Text="{Binding EstadoDocumento}" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Margin="0,14,0,0"
+                       Style="{StaticResource ErrorFeedbackTextStyle}"
+                       Text="{Binding MensajeError}" />
+            <TextBlock Margin="0,14,0,0"
+                       Style="{StaticResource SuccessFeedbackTextStyle}"
+                       Text="{Binding MensajeExito}" />
+
+            <Button Width="170"
+                    Margin="0,20,0,0"
+                    HorizontalAlignment="Left"
+                    Command="{Binding GenerarPdfCommand}"
+                    Content="{Binding TextoGenerar}"
+                    Style="{StaticResource PrimaryActionButtonStyle}" />
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

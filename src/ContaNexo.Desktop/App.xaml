@@ -37,6 +37,9 @@
             <DataTemplate DataType="{x:Type viewModels:BalanceGeneralViewModel}">
                 <views:BalanceGeneralView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:ReportesViewModel}">
+                <views:ReportesView />
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
