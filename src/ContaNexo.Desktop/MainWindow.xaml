@@ -130,6 +130,9 @@
                                     <MenuItem Command="{Binding PlacementTarget.DataContext.NavegarEstadoResultadosCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                               Header="Estado de Resultados"
                                               Style="{StaticResource OperationsMenuItemStyle}" />
+                                    <MenuItem Command="{Binding PlacementTarget.DataContext.NavegarBalanceGeneralCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              Header="Balance General"
+                                              Style="{StaticResource OperationsMenuItemStyle}" />
                                 </ContextMenu>
                             </Button.ContextMenu>
                         </Button>

@@ -340,6 +340,56 @@
                                    Text="RESULTADO DEL PERÍODO" />
                     </Grid>
                 </Border>
+
+                <Border Cursor="Hand"
+                        Style="{StaticResource ModuleCardStyle}">
+                    <Border.InputBindings>
+                        <MouseBinding Command="{Binding NavegarBalanceGeneralCommand}"
+                                      MouseAction="LeftClick" />
+                    </Border.InputBindings>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid>
+                            <Border Width="46"
+                                    Height="46"
+                                    HorizontalAlignment="Left"
+                                    Background="{StaticResource BlueTintBrush}"
+                                    CornerRadius="12">
+                                <TextBlock HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           FontSize="14"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource BrandAccentBrush}"
+                                           Text="BG" />
+                            </Border>
+                            <Border Width="30"
+                                    Height="30"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Background="{StaticResource BlueTintBrush}"
+                                    CornerRadius="15">
+                                <TextBlock Style="{StaticResource StepNumberTextStyle}" Text="6" />
+                            </Border>
+                        </Grid>
+                        <TextBlock Grid.Row="1"
+                                   Style="{StaticResource CardTitleTextStyle}"
+                                   Text="Balance General" />
+                        <TextBlock Grid.Row="2"
+                                   Margin="0,12,0,20"
+                                   Style="{StaticResource BodyTextStyle}"
+                                   Text="Presenta la situación financiera del período mediante Activo, Pasivo y Patrimonio." />
+                        <TextBlock Grid.Row="3"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource BrandAccentBrush}"
+                                   Text="SITUACIÓN FINANCIERA  →" />
+                    </Grid>
+                </Border>
             </WrapPanel>
         </Grid>
     </ScrollViewer>

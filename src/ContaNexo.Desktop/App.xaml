@@ -34,6 +34,9 @@
             <DataTemplate DataType="{x:Type viewModels:EstadoResultadosViewModel}">
                 <views:EstadoResultadosView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:BalanceGeneralViewModel}">
+                <views:BalanceGeneralView />
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

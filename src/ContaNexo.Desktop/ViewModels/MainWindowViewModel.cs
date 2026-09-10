@@ -14,6 +14,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private readonly LibroMayorViewModel _libroMayorViewModel;
     private readonly BalanceSumasSaldosViewModel _balanceSumasSaldosViewModel;
     private readonly EstadoResultadosViewModel _estadoResultadosViewModel;
+    private readonly BalanceGeneralViewModel _balanceGeneralViewModel;
     private ViewModelBase _vistaActual;
     private Empresa? _empresaActiva;
     private PeriodoContableListado? _periodoActivo;
@@ -40,16 +41,23 @@ public sealed class MainWindowViewModel : ViewModelBase
         _estadoResultadosViewModel = new EstadoResultadosViewModel(
             repositorioLibroMayor,
             () => PeriodoActivo);
+        _balanceGeneralViewModel = new BalanceGeneralViewModel(
+            repositorioPeriodoContable,
+            repositorioLibroMayor,
+            () => _empresaActiva,
+            () => PeriodoActivo);
         NavegarLibroDiarioCommand = new ComandoAsync(NavegarALibroDiarioAsync);
         NavegarLibroMayorCommand = new ComandoAsync(NavegarALibroMayorAsync);
         NavegarBalanceSumasSaldosCommand = new ComandoAsync(NavegarABalanceSumasSaldosAsync);
         NavegarEstadoResultadosCommand = new ComandoAsync(NavegarAEstadoResultadosAsync);
+        NavegarBalanceGeneralCommand = new ComandoAsync(NavegarABalanceGeneralAsync);
         _inicioViewModel = new InicioViewModel(
             NavegarACatalogoAsync,
             NavegarLibroDiarioCommand,
             NavegarLibroMayorCommand,
             NavegarBalanceSumasSaldosCommand,
-            NavegarEstadoResultadosCommand);
+            NavegarEstadoResultadosCommand,
+            NavegarBalanceGeneralCommand);
         _empresaViewModel = new EmpresaViewModel(repositorioEmpresa, EstablecerEmpresaActiva);
         _periodoContableViewModel = new PeriodoContableViewModel(
             repositorioPeriodoContable,
@@ -109,6 +117,8 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public ComandoAsync NavegarEstadoResultadosCommand { get; }
 
+    public ComandoAsync NavegarBalanceGeneralCommand { get; }
+
     public ComandoAsync NavegarEmpresaCommand { get; }
 
     public Task InicializarAsync()
@@ -159,6 +169,12 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         VistaActual = _estadoResultadosViewModel;
         await _estadoResultadosViewModel.CargarAsync();
+    }
+
+    private async Task NavegarABalanceGeneralAsync()
+    {
+        VistaActual = _balanceGeneralViewModel;
+        await _balanceGeneralViewModel.CargarAsync();
     }
 
     private async Task NavegarAEmpresaAsync()

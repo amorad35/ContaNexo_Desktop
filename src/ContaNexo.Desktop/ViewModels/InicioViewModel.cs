@@ -7,13 +7,15 @@ public sealed class InicioViewModel : ViewModelBase
         ComandoAsync navegarLibroDiarioCommand,
         ComandoAsync navegarLibroMayorCommand,
         ComandoAsync navegarBalanceSumasSaldosCommand,
-        ComandoAsync navegarEstadoResultadosCommand)
+        ComandoAsync navegarEstadoResultadosCommand,
+        ComandoAsync navegarBalanceGeneralCommand)
     {
         NavegarCatalogoCommand = new ComandoAsync(navegarCatalogoAsync);
         NavegarLibroDiarioCommand = navegarLibroDiarioCommand;
         NavegarLibroMayorCommand = navegarLibroMayorCommand;
         NavegarBalanceSumasSaldosCommand = navegarBalanceSumasSaldosCommand;
         NavegarEstadoResultadosCommand = navegarEstadoResultadosCommand;
+        NavegarBalanceGeneralCommand = navegarBalanceGeneralCommand;
     }
 
     public ComandoAsync NavegarCatalogoCommand { get; }
@@ -25,4 +27,6 @@ public sealed class InicioViewModel : ViewModelBase
     public ComandoAsync NavegarBalanceSumasSaldosCommand { get; }
 
     public ComandoAsync NavegarEstadoResultadosCommand { get; }
+
+    public ComandoAsync NavegarBalanceGeneralCommand { get; }
 }

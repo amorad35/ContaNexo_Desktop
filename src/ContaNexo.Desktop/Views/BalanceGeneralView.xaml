@@ -1,0 +1,688 @@
+<UserControl x:Class="ContaNexo.Desktop.Views.BalanceGeneralView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="760"
+             d:DesignWidth="1400"
+             mc:Ignorable="d"
+             SizeChanged="BalanceGeneralView_SizeChanged">
+    <UserControl.Resources>
+        <Style x:Key="BalanceGeneralEstadoPanelStyle" TargetType="Border">
+            <Setter Property="MinHeight" Value="230" />
+            <Setter Property="Margin" Value="0,18,0,0" />
+            <Setter Property="Padding" Value="34" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Visibility" Value="Collapsed" />
+        </Style>
+
+        <Style x:Key="BalanceGeneralSinEmpresaStyle"
+               BasedOn="{StaticResource BalanceGeneralEstadoPanelStyle}"
+               TargetType="Border">
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding TieneEmpresa}" Value="False" />
+                        <Condition Binding="{Binding EstaCargando}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceGeneralSinPeriodoStyle"
+               BasedOn="{StaticResource BalanceGeneralEstadoPanelStyle}"
+               TargetType="Border">
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding TieneEmpresa}" Value="True" />
+                        <Condition Binding="{Binding TienePeriodoSeleccionado}" Value="False" />
+                        <Condition Binding="{Binding EstaCargando}" Value="False" />
+                        <Condition Binding="{Binding TieneError}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceGeneralCargandoStyle"
+               BasedOn="{StaticResource BalanceGeneralEstadoPanelStyle}"
+               TargetType="Border">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EstaCargando}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceGeneralErrorStyle"
+               BasedOn="{StaticResource BalanceGeneralEstadoPanelStyle}"
+               TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource ErrorTintBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ErrorBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding TieneError}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceGeneralContenidoStyle" TargetType="StackPanel">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding TienePeriodoConsultado}" Value="True" />
+                        <Condition Binding="{Binding EstaCargando}" Value="False" />
+                        <Condition Binding="{Binding TieneError}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceGeneralAdvertenciaStyle" TargetType="Border">
+            <Setter Property="Margin" Value="0,14,0,0" />
+            <Setter Property="Padding" Value="12,9" />
+            <Setter Property="Background" Value="{StaticResource AmberTintBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AmberBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="9" />
+            <Setter Property="Visibility" Value="Collapsed" />
+        </Style>
+
+        <Style x:Key="BalanceGeneralSaldosContrariosStyle"
+               BasedOn="{StaticResource BalanceGeneralAdvertenciaStyle}"
+               TargetType="Border">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding TieneSaldosContrarios}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceGeneralSuperposicionStyle"
+               BasedOn="{StaticResource BalanceGeneralAdvertenciaStyle}"
+               TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource VioletTintBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource VioletBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding TieneCuentasResultadoEjercicioRegistradas}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceGeneralSeccionStyle" TargetType="Border">
+            <Setter Property="Margin" Value="0,10,0,0" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Background" Value="{StaticResource ContextBarBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+
+        <Style x:Key="BalanceGeneralCuentaRowStyle" TargetType="Grid">
+            <Setter Property="Margin" Value="0,6,0,0" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ImporteConsolidado}" Value="0">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceGeneralAlertaCuentaStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="8,0,0,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource AmberBrush}" />
+            <Setter Property="Text" Value="Saldo contrario" />
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding TieneSaldoContrario}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BalanceGeneralCuadradoStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource ErrorTintBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ErrorBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="9" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EstaCuadrado}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GreenTintBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource GreenBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="BalanceGeneralGrupoTemplate">
+            <Border Style="{StaticResource BalanceGeneralSeccionStyle}">
+                <StackPanel>
+                    <TextBlock FontSize="15"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               Text="{Binding NombreGrupo}" />
+                    <ItemsControl ItemsSource="{Binding Cuentas}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Style="{StaticResource BalanceGeneralCuentaRowStyle}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Width="72"
+                                               VerticalAlignment="Center"
+                                               FontFamily="Consolas"
+                                               FontSize="13"
+                                               Foreground="{StaticResource MutedTextBrush}"
+                                               Text="{Binding CodigoCuenta}" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <TextBlock VerticalAlignment="Center"
+                                                   FontSize="14"
+                                                   Foreground="{StaticResource PrimaryTextBrush}"
+                                                   Text="{Binding NombrePresentacion}" />
+                                        <TextBlock Style="{StaticResource BalanceGeneralAlertaCuentaStyle}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2"
+                                               MinWidth="120"
+                                               HorizontalAlignment="Right"
+                                               FontFamily="Consolas"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource PrimaryTextBrush}"
+                                               Text="{Binding ImporteConsolidado, StringFormat={}{0:N2}}"
+                                               TextAlignment="Right" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                   Text="Subtotal" />
+                        <TextBlock Grid.Column="1"
+                                   MinWidth="120"
+                                   HorizontalAlignment="Right"
+                                   FontFamily="Consolas"
+                                   FontSize="14"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource PrimaryTextBrush}"
+                                   Text="{Binding TotalGrupo, StringFormat={}{0:N2}}"
+                                   TextAlignment="Right" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto">
+        <Grid Margin="32,24,32,36" HorizontalAlignment="Stretch">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource EyebrowTextStyle}" Text="REPORTE FINANCIERO" />
+                    <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="Balance General" />
+                    <TextBlock MaxWidth="670"
+                               Margin="0,6,0,0"
+                               HorizontalAlignment="Left"
+                               TextAlignment="Left"
+                               Style="{StaticResource BodyTextStyle}"
+                               Text="Presenta la situación financiera de la empresa en el período contable consultado." />
+                    <Border Style="{StaticResource BalanceGeneralSaldosContrariosStyle}">
+                        <TextBlock FontSize="13" Foreground="{StaticResource AmberBrush}" TextWrapping="Wrap">
+                            <Run FontWeight="SemiBold" Text="Revisión requerida. " />
+                            <Run Text="Se detectaron " />
+                            <Run FontWeight="SemiBold" Text="{Binding CantidadSaldosContrarios, Mode=OneWay}" />
+                            <Run Text=" cuenta(s) con saldo contrario a su naturaleza." />
+                        </TextBlock>
+                    </Border>
+                </StackPanel>
+
+                <Border Grid.Column="1"
+                        MinWidth="318"
+                        Margin="24,0,0,0"
+                        Padding="12,10"
+                        VerticalAlignment="Top"
+                        Background="{StaticResource VioletTintBrush}"
+                        BorderBrush="{StaticResource VioletBrush}"
+                        BorderThickness="1"
+                        CornerRadius="10">
+                    <StackPanel>
+                        <TextBlock FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource VioletBrush}"
+                                   Text="PERÍODO DEL REPORTE" />
+                        <ComboBox Margin="0,6,0,0"
+                                  MinWidth="282"
+                                  ItemsSource="{Binding Periodos}"
+                                  SelectedItem="{Binding PeriodoSeleccionado, Mode=TwoWay}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="0">
+                                        <TextBlock FontWeight="SemiBold" Text="{Binding NombrePeriodo}" />
+                                        <TextBlock Margin="0,1,0,0"
+                                                   FontSize="12"
+                                                   Foreground="{StaticResource SecondaryTextBrush}">
+                                            <Run Text="{Binding FechaInicioPeriodo, StringFormat={}{0:dd/MM/yyyy}, Mode=OneWay}" />
+                                            <Run Text=" — " />
+                                            <Run Text="{Binding FechaFinPeriodo, StringFormat={}{0:dd/MM/yyyy}, Mode=OneWay}" />
+                                        </TextBlock>
+                                        <TextBlock x:Name="EstadoPeriodoText"
+                                                   Margin="0,1,0,0"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding EstadoPeriodo}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="{StaticResource VioletBrush}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding EstadoPeriodo}" Value="Abierto">
+                                                            <Setter Property="Foreground" Value="{StaticResource GreenBrush}" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding EstadoPeriodo}" Value="Cerrado">
+                                                            <Setter Property="Foreground" Value="{StaticResource VioletBrush}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <Button Margin="0,8,0,0"
+                                Command="{Binding ConsultarPeriodoCommand}"
+                                Content="Consultar"
+                                Style="{StaticResource PrimaryActionButtonStyle}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Grid Grid.Row="1"
+                  MaxWidth="1500"
+                  HorizontalAlignment="Center"
+                  Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType={x:Type Grid}}}">
+                <Border Style="{StaticResource BalanceGeneralSinEmpresaStyle}">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Configura una empresa" />
+                        <TextBlock Margin="0,10,0,0"
+                                   Style="{StaticResource BodyTextStyle}"
+                                   Text="Selecciona o configura una empresa antes de consultar el Balance General." />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource BalanceGeneralSinPeriodoStyle}">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Selecciona un período contable" />
+                        <TextBlock Margin="0,10,0,0"
+                                   Style="{StaticResource BodyTextStyle}"
+                                   Text="Elige un período abierto o cerrado y pulsa Consultar para preparar el Balance General." />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource BalanceGeneralCargandoStyle}">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Preparando el Balance General" />
+                        <TextBlock Margin="0,10,0,0"
+                                   Style="{StaticResource BodyTextStyle}"
+                                   Text="Se están consolidando los saldos del período seleccionado." />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource BalanceGeneralErrorStyle}">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock FontSize="21"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource ErrorBrush}"
+                                   Text="No se pudo cargar el Balance General" />
+                        <TextBlock Margin="0,10,0,0"
+                                   Style="{StaticResource BodyTextStyle}"
+                                   Foreground="{StaticResource ErrorBrush}"
+                                   Text="{Binding MensajeError}" />
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Style="{StaticResource BalanceGeneralContenidoStyle}">
+                    <Border Style="{StaticResource BalanceGeneralSuperposicionStyle}">
+                        <TextBlock FontSize="13" Foreground="{StaticResource VioletBrush}" TextWrapping="Wrap">
+                            <Run FontWeight="SemiBold" Text="Resultado del ejercicio registrado. " />
+                            <Run Text="Existen saldos en " />
+                            <Run FontWeight="SemiBold" Text="{Binding CantidadCuentasResultadoEjercicioRegistradas, Mode=OneWay}" />
+                            <Run Text=" cuenta(s) 3203/3204; la proyección de Resultado Neto podría superponerse con ellos." />
+                        </TextBlock>
+                    </Border>
+
+                    <Grid x:Name="SeccionesBalanceGrid" Margin="0,14,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border x:Name="ActivoPanel"
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Padding="16"
+                                VerticalAlignment="Top"
+                                Background="{StaticResource SurfaceBrush}"
+                                BorderBrush="{StaticResource CardBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="14">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Activo" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Style="{StaticResource BodyTextStyle}"
+                                           Text="Recursos controlados por la empresa." />
+                                <ContentControl Margin="0,2,0,0"
+                                                Content="{Binding ActivoCorriente}"
+                                                ContentTemplate="{StaticResource BalanceGeneralGrupoTemplate}" />
+                                <ContentControl Content="{Binding ActivoNoCorriente}"
+                                                ContentTemplate="{StaticResource BalanceGeneralGrupoTemplate}" />
+                                <Border Margin="0,12,0,0"
+                                        Padding="12,8"
+                                        Background="{StaticResource BlueTintBrush}"
+                                        CornerRadius="9">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock FontSize="14"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource BrandAccentBrush}"
+                                                   Text="TOTAL ACTIVO" />
+                                        <TextBlock Grid.Column="1"
+                                                   MinWidth="145"
+                                                   HorizontalAlignment="Right"
+                                                   FontFamily="Consolas"
+                                                   FontSize="16"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource BrandAccentBrush}"
+                                                   Text="{Binding TotalActivo, StringFormat={}{0:N2}}"
+                                                   TextAlignment="Right" />
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="PasivoPatrimonioPanel"
+                                Grid.Row="0"
+                                Grid.Column="2"
+                                Padding="16"
+                                VerticalAlignment="Top"
+                                Background="{StaticResource SurfaceBrush}"
+                                BorderBrush="{StaticResource CardBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="14">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Pasivo y Patrimonio" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Style="{StaticResource BodyTextStyle}"
+                                           Text="Obligaciones y recursos propios de la empresa." />
+                                <ContentControl Margin="0,2,0,0"
+                                                Content="{Binding PasivoCorriente}"
+                                                ContentTemplate="{StaticResource BalanceGeneralGrupoTemplate}" />
+                                <Border Margin="0,8,0,0"
+                                        Padding="10"
+                                        Background="{StaticResource ContextBarBrush}"
+                                        BorderBrush="{StaticResource DividerBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="9">
+                                    <StackPanel>
+                                        <TextBlock FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                   Text="Partidas calculadas del período" />
+                                        <Grid Margin="0,6,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock FontSize="14" Text="Participación de trabajadores" />
+                                            <TextBlock Grid.Column="1"
+                                                       MinWidth="120"
+                                                       HorizontalAlignment="Right"
+                                                       FontFamily="Consolas"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       Text="{Binding ParticipacionTrabajadores, StringFormat={}{0:N2}}"
+                                                       TextAlignment="Right" />
+                                        </Grid>
+                                        <Grid Margin="0,5,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock FontSize="14" Text="Impuesto a la Renta" />
+                                            <TextBlock Grid.Column="1"
+                                                       MinWidth="120"
+                                                       HorizontalAlignment="Right"
+                                                       FontFamily="Consolas"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       Text="{Binding ImpuestoRenta, StringFormat={}{0:N2}}"
+                                                       TextAlignment="Right" />
+                                        </Grid>
+                                        <Grid Margin="0,8,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource SecondaryTextBrush}"
+                                                       Text="Total Pasivo Corriente" />
+                                            <TextBlock Grid.Column="1"
+                                                       MinWidth="120"
+                                                       HorizontalAlignment="Right"
+                                                       FontFamily="Consolas"
+                                                       FontSize="14"
+                                                       FontWeight="Bold"
+                                                       Text="{Binding TotalPasivoCorriente, StringFormat={}{0:N2}}"
+                                                       TextAlignment="Right" />
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                                <ContentControl Content="{Binding PasivoNoCorriente}"
+                                                ContentTemplate="{StaticResource BalanceGeneralGrupoTemplate}" />
+                                <Border Margin="0,12,0,0"
+                                        Padding="12,8"
+                                        Background="{StaticResource VioletTintBrush}"
+                                        CornerRadius="9">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock FontSize="14"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource VioletBrush}"
+                                                   Text="TOTAL PASIVO" />
+                                        <TextBlock Grid.Column="1"
+                                                   MinWidth="145"
+                                                   HorizontalAlignment="Right"
+                                                   FontFamily="Consolas"
+                                                   FontSize="16"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource VioletBrush}"
+                                                   Text="{Binding TotalPasivo, StringFormat={}{0:N2}}"
+                                                   TextAlignment="Right" />
+                                    </Grid>
+                                </Border>
+
+                                <ContentControl Content="{Binding CapitalContable}"
+                                                ContentTemplate="{StaticResource BalanceGeneralGrupoTemplate}" />
+                                <ContentControl Content="{Binding ResultadosReservas}"
+                                                ContentTemplate="{StaticResource BalanceGeneralGrupoTemplate}" />
+                                <Border Margin="0,8,0,0"
+                                        Padding="10"
+                                        Background="{StaticResource ContextBarBrush}"
+                                        BorderBrush="{StaticResource DividerBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="9">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock FontSize="14" Text="Resultado neto del período" />
+                                        <TextBlock Grid.Column="1"
+                                                   MinWidth="120"
+                                                   HorizontalAlignment="Right"
+                                                   FontFamily="Consolas"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding ResultadoNeto, StringFormat={}{0:N2}}"
+                                                   TextAlignment="Right" />
+                                    </Grid>
+                                </Border>
+                                <Border Margin="0,12,0,0"
+                                        Padding="12,8"
+                                        Background="{StaticResource GreenTintBrush}"
+                                        CornerRadius="9">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock FontSize="14"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource GreenBrush}"
+                                                   Text="TOTAL PATRIMONIO" />
+                                        <TextBlock Grid.Column="1"
+                                                   MinWidth="145"
+                                                   HorizontalAlignment="Right"
+                                                   FontFamily="Consolas"
+                                                   FontSize="16"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource GreenBrush}"
+                                                   Text="{Binding TotalPatrimonio, StringFormat={}{0:N2}}"
+                                                   TextAlignment="Right" />
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Border Margin="0,14,0,0"
+                            Padding="16"
+                            Background="{StaticResource SurfaceBrush}"
+                            BorderBrush="{StaticResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="14">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="Comprobación del Balance" />
+                            <UniformGrid x:Name="MetricasComprobacionGrid"
+                                         Margin="0,12,0,0"
+                                         Columns="4"
+                                         Rows="1">
+                                <Border MinHeight="74" Margin="4" Padding="12,10"
+                                        Background="{StaticResource ContextBarBrush}"
+                                        BorderBrush="{StaticResource DividerBrush}"
+                                        BorderThickness="1" CornerRadius="9">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="TOTAL ACTIVO" />
+                                        <TextBlock Margin="0,4,0,0" FontFamily="Consolas" FontSize="17" FontWeight="Bold"
+                                                   Text="{Binding TotalActivo, StringFormat={}{0:N2}}" />
+                                    </StackPanel>
+                                </Border>
+                                <Border MinHeight="74" Margin="4" Padding="12,10"
+                                        Background="{StaticResource ContextBarBrush}"
+                                        BorderBrush="{StaticResource DividerBrush}"
+                                        BorderThickness="1" CornerRadius="9">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="TOTAL PASIVO" />
+                                        <TextBlock Margin="0,4,0,0" FontFamily="Consolas" FontSize="17" FontWeight="Bold"
+                                                   Text="{Binding TotalPasivo, StringFormat={}{0:N2}}" />
+                                    </StackPanel>
+                                </Border>
+                                <Border MinHeight="74" Margin="4" Padding="12,10"
+                                        Background="{StaticResource ContextBarBrush}"
+                                        BorderBrush="{StaticResource DividerBrush}"
+                                        BorderThickness="1" CornerRadius="9">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="TOTAL PATRIMONIO" />
+                                        <TextBlock Margin="0,4,0,0" FontFamily="Consolas" FontSize="17" FontWeight="Bold"
+                                                   Text="{Binding TotalPatrimonio, StringFormat={}{0:N2}}" />
+                                    </StackPanel>
+                                </Border>
+                                <Border MinHeight="74" Margin="4" Padding="12,10"
+                                        Background="{StaticResource ContextBarBrush}"
+                                        BorderBrush="{StaticResource DividerBrush}"
+                                        BorderThickness="1" CornerRadius="9">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="TOTAL PASIVO Y PATRIMONIO" />
+                                        <TextBlock Margin="0,4,0,0" FontFamily="Consolas" FontSize="17" FontWeight="Bold"
+                                                   Text="{Binding TotalPasivoPatrimonio, StringFormat={}{0:N2}}" />
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+                            <Border Margin="0,12,0,0"
+                                    Padding="14,10"
+                                    Style="{StaticResource BalanceGeneralCuadradoStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource ContextLabelTextStyle}" Text="DIFERENCIA" />
+                                        <TextBlock Margin="0,3,0,0"
+                                                   FontFamily="Consolas"
+                                                   FontSize="17"
+                                                   FontWeight="Bold"
+                                                   Text="{Binding Diferencia, StringFormat={}{0:N2}}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1"
+                                               VerticalAlignment="Center"
+                                               FontSize="14"
+                                               FontWeight="Bold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
+                                                <Setter Property="Text" Value="⚠ El balance no está cuadrado" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding EstaCuadrado}" Value="True">
+                                                        <Setter Property="Foreground" Value="{StaticResource GreenBrush}" />
+                                                        <Setter Property="Text" Value="✓ Balance cuadrado" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>
